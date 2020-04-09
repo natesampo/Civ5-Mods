@@ -44,6 +44,7 @@ public:
 	int GetCultureFromKills() const;
 	int GetCultureFromBarbarianKills() const;
 	int GetGoldFromKills() const;
+	int GetScienceFromKills() const; // NATEMOD - Science from kills
 	int GetEmbarkedExtraMoves() const;
 	int GetAttackBonusTurns() const;
 	int GetGoldenAgeTurns() const;
@@ -134,6 +135,7 @@ public:
 	int GetSharedIdeologyTourismModifier() const;
 	int GetLandTradeRouteGoldChange() const;
 	int GetSeaTradeRouteGoldChange() const;
+	int GetInternalTradeRouteGoldChange() const; // NATEMOD - Internal trade route gold
 	int GetSharedIdeologyTradeGoldChange() const;
 	int GetRiggingElectionModifier() const;
 	int GetMilitaryUnitGiftExtraInfluence() const;
@@ -149,10 +151,13 @@ public:
 	bool IsMinorGreatPeopleAllies() const;
 	bool IsMinorScienceAllies() const;
 	bool IsMinorResourceBonus() const;
+	int GetCityStateBonusModifier() const; // NATEMOD - City state bonus resources
+	int GetExtraTourismPerGreatWork() const; // NATEMOD - Extra tourism for great works
 	int GetPolicyBranchType() const;
 	int GetNumExtraBranches() const;
 	int GetHappinessToCulture() const;
 	int GetHappinessToScience() const;
+	int GetNumCitiesFreeWalls() const; // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	int GetNumCitiesFreeCultureBuilding() const;
 	int GetNumCitiesFreeFoodBuilding() const;
 	bool IsHalfSpecialistUnhappiness() const;
@@ -236,6 +241,7 @@ private:
 	int m_iCultureFromKills;
 	int m_iCultureFromBarbarianKills;
 	int m_iGoldFromKills;
+	int m_iScienceFromKills; // NATEMOD - Science from kills
 	int m_iEmbarkedExtraMoves;
 	int m_iAttackBonusTurns;
 	int m_iGoldenAgeTurns;
@@ -323,6 +329,7 @@ private:
 	int m_iSharedIdeologyTourismModifier;
 	int m_iLandTradeRouteGoldChange;
 	int m_iSeaTradeRouteGoldChange;
+	int m_iInternalTradeRouteGoldChange; // NATEMOD - Internal trade route gold
 	int m_iSharedIdeologyTradeGoldChange;
 	int m_iRiggingElectionModifier;
 	int m_iMilitaryUnitGiftExtraInfluence;
@@ -338,6 +345,8 @@ private:
 	bool m_bMinorGreatPeopleAllies;
 	bool m_bMinorScienceAllies;
 	bool m_bMinorResourceBonus;
+	int m_iCityStateBonusModifier; // NATEMOD - City state bonus resources
+	int m_iExtraTourismPerGreatWork; // NQMP GJS - Extra tourism from great works
 	int m_iFreeSpecialist;
 	int m_iMaxConscript;
 	int m_iPolicyBranchType;
@@ -347,6 +356,7 @@ private:
 	int m_iBarbarianCombatBonus;
 	int m_iHappinessToCulture;
 	int m_iHappinessToScience;
+	int m_iNumCitiesFreeWalls; // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	int m_iNumCitiesFreeCultureBuilding;
 	int m_iNumCitiesFreeFoodBuilding;
 
@@ -537,6 +547,10 @@ enum PolicyModifierType
     POLICYMOD_SHARED_RELIGION_TOURISM_MODIFIER,
     POLICYMOD_TRADE_ROUTE_TOURISM_MODIFIER,
 	POLICYMOD_OPEN_BORDERS_TOURISM_MODIFIER,
+	POLICYMOD_SCIENCE_FROM_KILLS, // NATEMOD - Science from kills
+	POLICYMOD_CITY_STATE_BONUS_MODIFIER, // NATEMOD - City state bonus resources
+	POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK, // NATEMOD - Extra tourism for great works
+	POLICYMOD_INTERNAL_TRADE_GOLD_CHANGE, // NATEMOD - Internal trade route gold
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

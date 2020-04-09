@@ -371,6 +371,8 @@ public:
 
 	int GetCultureYieldFromPreviousTurns(int iGameTurn, int iNumPreviousTurnsToCount);
 
+	int GetNumCitiesFreeWalls() const; // NATEMOD - Add support for tradition NumCitiesFreeWalls
+	void ChangeNumCitiesFreeWalls(int iChange); // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	int GetNumCitiesFreeCultureBuilding() const;
 	void ChangeNumCitiesFreeCultureBuilding(int iChange);
 	int GetNumCitiesFreeFoodBuilding() const;
@@ -607,6 +609,14 @@ public:
 	void incrementGreatArtistsCreated();
 	int getGreatMusiciansCreated() const;
 	void incrementGreatMusiciansCreated();
+	int getGreatScientistsCreated() const; // NATEMOD
+	void incrementGreatScientistsCreated(); // NATEMOD
+	int getGreatEngineersCreated() const; // NATEMOD
+	void incrementGreatEngineersCreated(); // NATEMOD
+	int getGreatMerchantsCreated() const; // NATEMOD
+	void incrementGreatMerchantsCreated(); // NATEMOD
+	int getGreatProphetsCreated() const; // NATEMOD
+	void incrementGreatProphetsCreated(); // NATEMOD
 
 	int getMerchantsFromFaith() const;
 	void incrementMerchantsFromFaith();
@@ -1617,6 +1627,10 @@ protected:
 	int m_iGreatWritersCreated;
 	int m_iGreatArtistsCreated;
 	int m_iGreatMusiciansCreated;
+	int m_iGreatScientistsCreated; // NATEMOD
+	int m_iGreatEngineersCreated; // NATEMOD
+	int m_iGreatMerchantsCreated; // NATEMOD
+	int m_iGreatProphetsCreated; // NATEMOD
 	int m_iMerchantsFromFaith;
 	int m_iScientistsFromFaith;
 	int m_iWritersFromFaith;
@@ -1743,6 +1757,7 @@ protected:
 	int m_iNumCitiesPolicyCostDiscount;
 	int m_iGarrisonedCityRangeStrikeModifier;
 	int m_iGarrisonFreeMaintenanceCount;
+	int m_iNumCitiesFreeWalls; // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	int m_iNumCitiesFreeCultureBuilding;
 	int m_iNumCitiesFreeFoodBuilding;
 	FAutoVariable<int, CvPlayer> m_iUnitPurchaseCostModifier;

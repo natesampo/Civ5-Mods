@@ -1369,19 +1369,7 @@ int PathValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poin
 		}
 	}
 
-	if(!bUnitIsCombat && unit_domain_type != DOMAIN_AIR)
-	{
-		const PlayerTypes eUnitPlayer = unit_owner;
-		const int iUnitCount = pToPlot->getNumUnits();
-		for(int iUnit = 0; iUnit < iUnitCount; ++iUnit)
-		{
-			const CvUnit* pToPlotUnit = pToPlot->getUnitByIndex(iUnit);
-			if(pToPlotUnit != NULL && pToPlotUnit->getOwner() != eUnitPlayer)
-			{
-				return FALSE; // Plot occupied by another player
-			}
-		}
-	}
+	// NATEMOD - Removed radaring
 
 	// slewis - Added to catch when the unit is adjacent to an enemy unit while it is stacked with a friendly unit.
 	//          The logic above (with bPreviousNodeHostile) catches this problem with a path that's longer than one step

@@ -183,6 +183,10 @@ CvPlayer::CvPlayer() :
 	, m_iGreatWritersCreated(0)
 	, m_iGreatArtistsCreated(0)
 	, m_iGreatMusiciansCreated(0)
+	, m_iGreatScientistsCreated(0) // NATEMOD
+	, m_iGreatEngineersCreated(0) // NATEMOD
+	, m_iGreatMerchantsCreated(0) // NATEMOD
+	, m_iGreatProphetsCreated(0) // NATEMOD
 	, m_iMerchantsFromFaith(0)
 	, m_iScientistsFromFaith(0)
 	, m_iWritersFromFaith(0)
@@ -301,6 +305,7 @@ CvPlayer::CvPlayer() :
 	, m_iNumCitiesPolicyCostDiscount(0)
 	, m_iGarrisonedCityRangeStrikeModifier(0)
 	, m_iGarrisonFreeMaintenanceCount(0)
+	, m_iNumCitiesFreeWalls(0) // NATEMOD - Tradition free walls support
 	, m_iNumCitiesFreeCultureBuilding(0)
 	, m_iNumCitiesFreeFoodBuilding(0)
 	, m_iUnitPurchaseCostModifier("CvPlayer::m_iUnitPurchaseCostModifier", m_syncArchive)
@@ -788,6 +793,10 @@ void CvPlayer::uninit()
 	m_iGreatWritersCreated = 0;
 	m_iGreatArtistsCreated = 0;
 	m_iGreatMusiciansCreated = 0;
+	m_iGreatScientistsCreated = 0; // NATEMOD
+	m_iGreatEngineersCreated = 0; // NATEMOD
+	m_iGreatMerchantsCreated = 0; // NATEMOD
+	m_iGreatProphetsCreated = 0; // NATEMOD
 	m_iMerchantsFromFaith = 0;
 	m_iScientistsFromFaith = 0;
 	m_iWritersFromFaith = 0;
@@ -914,6 +923,7 @@ void CvPlayer::uninit()
 	m_iNumCitiesPolicyCostDiscount = 0;
 	m_iGarrisonedCityRangeStrikeModifier = 0;
 	m_iGarrisonFreeMaintenanceCount = 0;
+	m_iNumCitiesFreeWalls = 0; // NATEMOD - Tradition free walls support
 	m_iNumCitiesFreeCultureBuilding = 0;
 	m_iNumCitiesFreeFoodBuilding = 0;
 	m_iUnitPurchaseCostModifier = 0;
@@ -5556,6 +5566,15 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		}
 	}
 
+	// NATEMOD - Can't get early culture ruins
+	if (kGoodyInfo.getCulture() > 0)
+	{
+		if (GC.getGame().getElapsedGameTurns() < 12)
+		{
+			return false;
+		}
+	}
+
 	// Early pantheon
 	if(kGoodyInfo.isPantheonFaith())
 	{
@@ -6555,6 +6574,18 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 //	--------------------------------------------------------------------------------
 void CvPlayer::AwardFreeBuildings(CvCity* pCity)
 {
+	// NATEMOD - add support for NumCitiesFreeWalls
+	int iNumFreeWalls = GetNumCitiesFreeWalls();
+	if (iNumFreeWalls > 0)
+	{
+		BuildingTypes eWalls = pCity->ChooseFreeWallsBuilding();
+		if (eWalls != NO_BUILDING)
+		{
+			pCity->GetCityBuildings()->SetNumRealBuilding(eWalls, 1);
+		}
+		ChangeNumCitiesFreeWalls(-1);
+	}
+
 	int iNumFreeCultureBuildings = GetNumCitiesFreeCultureBuilding();
 	if(iNumFreeCultureBuildings > 0)
 	{
@@ -9768,6 +9799,23 @@ int CvPlayer::GetCultureYieldFromPreviousTurns(int iGameTurn, int iNumPreviousTu
 	return iSum;
 }
 
+// NATEMOD - Getter for free walls
+//	--------------------------------------------------------------------------------
+/// Cities remaining to get free Walls
+int CvPlayer::GetNumCitiesFreeWalls() const
+{
+	return m_iNumCitiesFreeWalls;
+}
+
+// NATEMOD - Setter for free walls
+//	--------------------------------------------------------------------------------
+/// Changes number of cities remaining to get free Walls
+void CvPlayer::ChangeNumCitiesFreeWalls(int iChange)
+{
+	if(iChange != 0)
+		m_iNumCitiesFreeWalls += iChange;
+}
+
 //	--------------------------------------------------------------------------------
 /// Cities remaining to get a free culture building
 int CvPlayer::GetNumCitiesFreeCultureBuilding() const
@@ -9857,6 +9905,8 @@ void CvPlayer::DoYieldBonusFromKill(YieldTypes eYield, UnitTypes eAttackingUnitT
 				}
 				break;
 			case YIELD_SCIENCE:
+				// NATEMOD - Added ability to get science from kills
+				iValue += GetPlayerPolicies()->GetNumericModifier(POLICYMOD_SCIENCE_FROM_KILLS);
 				break;
 			}
 
@@ -12604,6 +12654,62 @@ void CvPlayer::incrementGreatMusiciansCreated()
 	m_iGreatMusiciansCreated++;
 }
 
+// NATEMOD - Separate scientists
+//	--------------------------------------------------------------------------------
+int CvPlayer::getGreatScientistsCreated() const
+{
+	return m_iGreatScientistsCreated;
+}
+
+// NATEMOD - Separate scientists
+//	--------------------------------------------------------------------------------
+void CvPlayer::incrementGreatScientistsCreated()
+{
+	m_iGreatScientistsCreated++;
+}
+
+// NATEMOD - Separate engineers
+//	--------------------------------------------------------------------------------
+int CvPlayer::getGreatEngineersCreated() const
+{
+	return m_iGreatEngineersCreated;
+}
+
+// NATEMOD - Separate engineers
+//	--------------------------------------------------------------------------------
+void CvPlayer::incrementGreatEngineersCreated()
+{
+	m_iGreatEngineersCreated++;
+}
+
+// NATEMOD - Separate merchants
+//	--------------------------------------------------------------------------------
+int CvPlayer::getGreatMerchantsCreated() const
+{
+	return m_iGreatMerchantsCreated;
+}
+
+// NATEMOD - Separate merchants
+//	--------------------------------------------------------------------------------
+void CvPlayer::incrementGreatMerchantsCreated()
+{
+	m_iGreatMerchantsCreated++;
+}
+
+// NATEMOD - Separate prophets
+//	--------------------------------------------------------------------------------
+int CvPlayer::getGreatProphetsCreated() const
+{
+	return m_iGreatProphetsCreated;
+}
+
+// NATEMOD - Separate prophets
+//	--------------------------------------------------------------------------------
+void CvPlayer::incrementGreatProphetsCreated()
+{
+	m_iGreatProphetsCreated++;
+}
+
 //	--------------------------------------------------------------------------------
 int CvPlayer::getMerchantsFromFaith() const
 {
@@ -13213,31 +13319,7 @@ void CvPlayer::DoSpawnGreatPerson(PlayerTypes eMinor)
 
 		if (pNewGreatPeople)
 		{
-			// Bump up the count
-			if(pNewGreatPeople->IsGreatGeneral())
-			{
-				incrementGreatGeneralsCreated();
-			}
-			else if(pNewGreatPeople->IsGreatAdmiral())
-			{
-				incrementGreatAdmiralsCreated();
-			}
-			else if (pNewGreatPeople->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_WRITER"))
-			{
-				incrementGreatWritersCreated();
-			}							
-			else if (pNewGreatPeople->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ARTIST"))
-			{
-				incrementGreatArtistsCreated();
-			}							
-			else if (pNewGreatPeople->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN"))
-			{
-				incrementGreatMusiciansCreated();
-			}
-			else
-			{
-				incrementGreatPeopleCreated();
-			}
+			// NATEMOD - Patronage great person gifts from city states are now free
 
 			if (pNewGreatPeople->IsGreatAdmiral())
 			{
@@ -16721,6 +16803,27 @@ int CvPlayer::GetScienceFromOtherPlayersTimes100() const
 			iScienceFromPlayer = GET_PLAYER(ePlayer).GetMinorCivAI()->GetScienceFriendshipBonusTimes100();
 
 			iScience += iScienceFromPlayer;
+		}
+	}
+
+	// NATEMOD - new Underground Sect (science from foreign followers)
+	CvGameReligions* pReligions = GC.getGame().GetGameReligions();
+	ReligionTypes eFoundedReligion = pReligions->GetFounderBenefitsReligion(GetID());
+	if(eFoundedReligion != NO_RELIGION)
+	{
+		const CvReligion* pReligion = pReligions->GetReligion(eFoundedReligion, NO_PLAYER);
+		if (pReligion)
+		{
+			int iTemp = pReligion->m_Beliefs.GetYieldChangePerXForeignFollowers(YIELD_SCIENCE);
+			if (iTemp > 0)
+			{
+				int iFollowers = GetReligions()->GetNumForeignFollowers(false /*bAtPeace*/);
+				if (iFollowers > 0)
+				{
+					iScienceFromPlayer = (iFollowers / iTemp);
+					iScience += iScienceFromPlayer * 100;
+				}
+			}
 		}
 	}
 
@@ -21140,7 +21243,8 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	int iYieldMod;
 	int iYieldChange;
 
-	// How many cities get free culture buildings?
+	// How many cities get free buildings?
+	int iNumCitiesFreeWalls = pPolicy->GetNumCitiesFreeWalls(); // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	int iNumCitiesFreeCultureBuilding = pPolicy->GetNumCitiesFreeCultureBuilding();
 	int iNumCitiesFreeFoodBuilding = pPolicy->GetNumCitiesFreeFoodBuilding();
 
@@ -21148,6 +21252,22 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	int iLoop;
 	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		// NATEMOD - Add support for tradition NumCitiesFreeWalls
+		if (iNumCitiesFreeWalls > 0)
+		{
+			BuildingTypes eWalls = pLoopCity->ChooseFreeWallsBuilding();
+			if (eWalls != NO_BUILDING)
+			{
+				pLoopCity->GetCityBuildings()->SetNumRealBuilding(eWalls, 1);
+				if (pLoopCity->getFirstBuildingOrder(eWalls) == 0)
+				{
+					pLoopCity->clearOrderQueue();
+					pLoopCity->chooseProduction();
+				}
+			}
+			iNumCitiesFreeWalls--;
+		}
+
 		if(iNumCitiesFreeCultureBuilding > 0)
 		{
 			BuildingTypes eCultureBuilding = pLoopCity->ChooseFreeCultureBuilding();
@@ -21254,6 +21374,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	}
 
 	// Store off number of newly built cities that will get a free building
+	ChangeNumCitiesFreeWalls(iNumCitiesFreeWalls); // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	ChangeNumCitiesFreeCultureBuilding(iNumCitiesFreeCultureBuilding);
 	ChangeNumCitiesFreeFoodBuilding(iNumCitiesFreeFoodBuilding);
 
@@ -21398,12 +21519,12 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 								{
 									if(pNewUnit->IsGreatGeneral())
 									{
-										incrementGreatGeneralsCreated();
+										// NATEMOD - Policies now grant actually free great generals
 										pNewUnit->jumpToNearestValidPlot();
 									}
 									else if(pNewUnit->IsGreatAdmiral())
 									{
-										incrementGreatAdmiralsCreated();
+										// NATEMOD - Policies now grant actually free great admirals
 										CvPlot *pSpawnPlot = GetGreatAdmiralSpawnPlot(pNewUnit);
 										if (pNewUnit->plot() != pSpawnPlot)
 										{
@@ -21424,7 +21545,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 									}
 									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_WRITER"))
 									{
-										incrementGreatWritersCreated();
+										// NATEMOD - Policies now grant actually free great writers
 
 										if (pNewUnit->getUnitInfo().GetOneShotTourism() > 0)
 										{
@@ -21435,12 +21556,31 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 									}							
 									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ARTIST"))
 									{
-										incrementGreatArtistsCreated();
+										// NATEMOD - Policies now grant actually free great artists
 										pNewUnit->jumpToNearestValidPlot();
 									}							
 									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN"))
 									{
-										incrementGreatMusiciansCreated();
+										// NATEMOD - Policies now grant actually free great musicians
+										pNewUnit->jumpToNearestValidPlot();
+									}
+									// NATEMOD - Split great people for future if necessary
+									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_SCIENTIST"))
+									{
+										// NATEMOD - Scientists bulb for set amount on spawn
+										pNewUnit->SetResearchBulbAmount(GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), pNewUnit->getUnitInfo().GetBaseBeakersTurnsToCount()));
+										pNewUnit->jumpToNearestValidPlot();
+									}
+									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ENGINEER"))
+									{
+										pNewUnit->jumpToNearestValidPlot();
+									}
+									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MERCHANT"))
+									{
+										pNewUnit->jumpToNearestValidPlot();
+									}
+									else if (pNewUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_PROPHET"))
+									{
 										pNewUnit->jumpToNearestValidPlot();
 									}
 									else if(pNewUnit->IsGreatPerson())
@@ -21814,6 +21954,10 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iGreatWritersCreated;
 	kStream >> m_iGreatArtistsCreated;
 	kStream >> m_iGreatMusiciansCreated;
+	kStream >> m_iGreatScientistsCreated; // NATEMOD
+	kStream >> m_iGreatEngineersCreated; // NATEMOD
+	kStream >> m_iGreatMerchantsCreated; // NATEMOD
+	kStream >> m_iGreatProphetsCreated; // NATEMOD
 	kStream >> m_iMerchantsFromFaith;
 	kStream >> m_iScientistsFromFaith;
 	kStream >> m_iWritersFromFaith;
@@ -21978,6 +22122,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iNumCitiesPolicyCostDiscount;
 	kStream >> m_iGarrisonFreeMaintenanceCount;
 	kStream >> m_iGarrisonedCityRangeStrikeModifier;
+	kStream >> m_iNumCitiesFreeWalls; // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	kStream >> m_iNumCitiesFreeCultureBuilding;
 	kStream >> m_iNumCitiesFreeFoodBuilding;
 	kStream >> m_iUnitPurchaseCostModifier;

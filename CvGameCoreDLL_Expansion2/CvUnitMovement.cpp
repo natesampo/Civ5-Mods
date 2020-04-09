@@ -100,25 +100,7 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 		iRouteFlatCost = INT_MAX;
 	}
 
-	TeamTypes eTeam = pToPlot->getTeam();
-	if(eTeam != NO_TEAM)
-	{
-		CvTeam* pPlotTeam = &GET_TEAM(eTeam);
-		CvPlayer* pPlotPlayer = &GET_PLAYER(pToPlot->getOwner());
-
-		// Great Wall increases movement cost by 1
-		if(pPlotTeam->isBorderObstacle() || pPlotPlayer->isBorderObstacle())
-		{
-			if(!pToPlot->isWater() && pUnit->getDomainType() == DOMAIN_LAND)
-			{
-				// Don't apply penalty to OUR team or teams we've given open borders to
-				if(eUnitTeam != eTeam && !pPlotTeam->IsAllowsOpenBordersToTeam(eUnitTeam))
-				{
-					iRegularCost += iMoveDenominator;
-				}
-			}
-		}
-	}
+	// NATEMOD - Deleted great wall movement inhibition
 }
 
 //	---------------------------------------------------------------------------

@@ -2106,11 +2106,11 @@ int CvPlayerTrade::GetTradeConnectionPolicyValueTimes100(const TradeConnection& 
 	if (kTradeConnection.m_eConnectionType == TRADE_CONNECTION_INTERNATIONAL)
 	{
 		// domain type bonuses
-		if (kTradeConnection.m_eDomain == DOMAIN_LAND)
+		if (kTradeConnection.m_eDomain == DOMAIN_LAND && eYield == YIELD_GOLD) // NATEMOD - Specify gold here to allow other yields
 		{
 			iValue += GET_PLAYER(kTradeConnection.m_eOriginOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_LAND_TRADE_GOLD_CHANGE);
 		}
-		else if (kTradeConnection.m_eDomain == DOMAIN_SEA)
+		else if (kTradeConnection.m_eDomain == DOMAIN_SEA && eYield == YIELD_GOLD) // NATEMOD - Specify gold here to allow other yields
 		{
 			iValue += GET_PLAYER(kTradeConnection.m_eOriginOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_SEA_TRADE_GOLD_CHANGE);
 		}
@@ -2139,7 +2139,7 @@ int CvPlayerTrade::GetTradeConnectionPolicyValueTimes100(const TradeConnection& 
 			bBothFreedom = pOwnerPlayerPolicies->IsPolicyBranchUnlocked(eFreedom) && pDestPlayerPolicies->IsPolicyBranchUnlocked(eFreedom);
 		}
 	
-		if (bBothAutocracy || bBothOrder || bBothFreedom)
+		if ((bBothAutocracy || bBothOrder || bBothFreedom) && eYield == YIELD_GOLD) // NATEMOD - Specify gold here to allow other yields
 		{
 			iValue += GET_PLAYER(kTradeConnection.m_eOriginOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_SHARED_IDEOLOGY_TRADE_CHANGE) * 100;
 		}
@@ -2236,6 +2236,11 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 		{
 			switch (eYield)
 			{
+			// NATEMOD - External routes can now yield food and production
+			case YIELD_PRODUCTION:
+			case YIELD_FOOD:
+				iValue = GetTradeConnectionPolicyValueTimes100(kTradeConnection, eYield);
+				break;
 			case YIELD_GOLD:
 				{
 					int iBaseValue = GetTradeConnectionBaseValueTimes100(kTradeConnection, eYield, bAsOriginPlayer);
@@ -2331,6 +2336,12 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 		}
 		else
 		{
+			// NATEMOD - Internal trade route gold
+			if (eYield == YIELD_GOLD)
+			{
+				iValue = GET_PLAYER(kTradeConnection.m_eDestOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_INTERNAL_TRADE_GOLD_CHANGE);
+			}
+
 			switch (kTradeConnection.m_eConnectionType)
 			{
 			case TRADE_CONNECTION_FOOD:

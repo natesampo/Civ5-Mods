@@ -722,7 +722,8 @@ void CvDllNetMessageHandler::ResponseGreatPersonChoice(PlayerTypes ePlayer, Unit
 	CvCity* pCity = kPlayer.GetGreatPersonSpawnCity(eGreatPersonUnit);
 	if(pCity)
 	{
-		pCity->GetCityCitizens()->DoSpawnGreatPerson(eGreatPersonUnit, true, false);
+		// NATEMOD - Changed first argument to false to make free great people from choice actually free
+		pCity->GetCityCitizens()->DoSpawnGreatPerson(eGreatPersonUnit, false, false);
 	}
 	kPlayer.ChangeNumFreeGreatPeople(-1);
 }

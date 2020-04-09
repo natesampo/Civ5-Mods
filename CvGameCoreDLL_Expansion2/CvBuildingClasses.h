@@ -597,6 +597,7 @@ public:
 	bool GetNextAvailableGreatWorkSlot(GreatWorkSlotType eGreatWorkSlot, BuildingClassTypes *eBuildingClass, int *iSlot) const;
 
 	int GetCultureFromGreatWorks() const;
+	int GetYieldFromGreatWorks(YieldTypes eIndex) const; // NATEMOD - Header for new function
 	int GetNumGreatWorks() const;
 	int GetNumGreatWorks(GreatWorkSlotType eGreatWorkSlot) const;
 

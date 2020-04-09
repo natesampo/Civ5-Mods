@@ -3088,6 +3088,15 @@ int CvCityBuildings::GetCultureFromGreatWorks() const
 	return iRtnValue;
 }
 
+// NATEMOD - Ability to add non-culture/non-tourism yields to great works
+/// Accessor: How much of a yield are we generating from Great Works in our buildings?
+int CvCityBuildings::GetYieldFromGreatWorks(YieldTypes eIndex) const
+{
+	int iYieldPerWork = GET_PLAYER(m_pCity->getOwner()).GetGreatWorkYieldChange(eIndex);
+	int iRtnValue = iYieldPerWork * m_aBuildingGreatWork.size();
+	return iRtnValue;
+}
+
 /// Accessor: How many Great Works of specific slot type present in this city?
 int CvCityBuildings::GetNumGreatWorks() const
 {

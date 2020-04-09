@@ -2637,6 +2637,10 @@ const UnitHandle CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttack
 	const UnitHandle pLoopUnit;
 	const UnitHandle pBestUnit;
 
+	// NATEMOD - Fix radaring
+	if (eAttackingPlayer != NO_PLAYER && !isVisible(GET_PLAYER(eAttackingPlayer).getTeam()))
+		return pBestUnit;
+
 	pUnitNode = headUnitNode();
 
 	while(pUnitNode != NULL)
@@ -6899,21 +6903,6 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 
 	iYield = GC.getTerrainInfo(getTerrainType())->getYield(eYield);
 
-	// Extra yield for religion on this terrain
-	if(pWorkingCity != NULL && eMajority != NO_RELIGION)
-	{
-		const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eMajority, pWorkingCity->getOwner());
-		if(pReligion)
-		{
-			int iReligionChange = pReligion->m_Beliefs.GetTerrainYieldChange(getTerrainType(), eYield);
-			if (eSecondaryPantheon != NO_BELIEF)
-			{
-				iReligionChange += GC.GetGameBeliefs()->GetEntry(eSecondaryPantheon)->GetTerrainYieldChange(getTerrainType(), eYield);
-			}
-			iYield += iReligionChange;
-		}
-	}
-
 	if(isHills())
 	{
 		iYield += kYield.getHillsChange();
@@ -7009,6 +6998,22 @@ int CvPlot::calculateNatureYield(YieldTypes eYield, TeamTypes eTeam, bool bIgnor
 			{
 				iYield += iYieldChange;
 			}
+		}
+	}
+
+	// NATEMOD - moved after previous if statement to allow yield changes from religion based on terrain with replacement features
+	// Extra yield for religion on this terrain
+	if(pWorkingCity != NULL && eMajority != NO_RELIGION)
+	{
+		const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eMajority, pWorkingCity->getOwner());
+		if(pReligion)
+		{
+			int iReligionChange = pReligion->m_Beliefs.GetTerrainYieldChange(getTerrainType(), eYield);
+			if (eSecondaryPantheon != NO_BELIEF)
+			{
+				iReligionChange += GC.GetGameBeliefs()->GetEntry(eSecondaryPantheon)->GetTerrainYieldChange(getTerrainType(), eYield);
+			}
+			iYield += iReligionChange;
 		}
 	}
 

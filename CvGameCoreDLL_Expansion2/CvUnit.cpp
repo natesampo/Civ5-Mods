@@ -263,6 +263,7 @@ CvUnit::CvUnit() :
 	, m_strName("")
 	, m_eGreatWork(NO_GREAT_WORK)
 	, m_iTourismBlastStrength(0)
+	, m_iResearchBulbAmount(0) // NATEMOD - New research bulb amount
 	, m_bPromotionReady("CvUnit::m_bPromotionReady", m_syncArchive)
 	, m_bDeathDelay("CvUnit::m_bDeathDelay", m_syncArchive)
 	, m_bCombatFocus("CvUnit::m_bCombatFocus", m_syncArchive)
@@ -603,6 +604,12 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 		SetTourismBlastStrength(kPlayer.GetCulture()->GetTourismBlastStrength(getUnitInfo().GetOneShotTourism()));
 	}
 
+	// NATEMOD - Great Scientists now bulb for science at point of birth
+	if (getUnitInfo().GetBaseBeakersTurnsToCount() > 0)
+	{
+		SetResearchBulbAmount(kPlayer.GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), getUnitInfo().GetBaseBeakersTurnsToCount()));
+	}
+
 	int iTourism = kPlayer.GetPlayerPolicies()->GetTourismFromUnitCreation((UnitClassTypes)(getUnitInfo().GetUnitClassType()));
 	if (iTourism > 0)
 	{
@@ -898,6 +905,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_strName = "";
 	m_eGreatWork = NO_GREAT_WORK;
 	m_iTourismBlastStrength = 0;
+	m_iResearchBulbAmount = 0; // NATEMOD - New research bulb amount init
 	m_strNameIAmNotSupposedToBeUsedAnyMoreBecauseThisShouldNotBeCheckedAndWeNeedToPreserveSaveGameCompatibility = "";
 	m_strScriptData ="";
 	m_iScenarioData = 0;
@@ -7382,8 +7390,7 @@ int CvUnit::getDiscoverAmount()
 		if (pPlayer)
 		{
 			// Beakers boost based on previous turns
-			int iPreviousTurnsToCount = m_pUnitInfo->GetBaseBeakersTurnsToCount();
-			iValue = pPlayer->GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), iPreviousTurnsToCount);
+			iValue = GetResearchBulbAmount(); // NATEMOD - Science bulb now based on scientist value at spawn
 			if (pPlayer->GetGreatScientistBeakerMod() != 0)
 			{
 				iValue += (iValue * pPlayer->GetGreatScientistBeakerMod()) / 100;
@@ -16805,6 +16812,20 @@ void CvUnit::SetTourismBlastStrength(int iValue)
 	m_iTourismBlastStrength = iValue;
 }
 
+// NATEMOD - Getter for new scientist bulb rules
+//	--------------------------------------------------------------------------------
+int CvUnit::GetResearchBulbAmount() const
+{
+	return m_iResearchBulbAmount;
+}
+
+// NATEMOD - Setter for new scientist bulb rules
+//	--------------------------------------------------------------------------------
+void CvUnit::SetResearchBulbAmount(int iValue)
+{
+	m_iResearchBulbAmount = iValue;
+}
+
 //	--------------------------------------------------------------------------------
 std::string CvUnit::getScriptData() const
 {
@@ -17844,6 +17865,8 @@ void CvUnit::read(FDataStream& kStream)
 		m_iTourismBlastStrength = 0;
 	}
 
+	kStream >> m_iResearchBulbAmount; // NATEMOD
+
 	//  Read mission queue
 	UINT uSize;
 	kStream >> uSize;
@@ -17956,6 +17979,8 @@ void CvUnit::write(FDataStream& kStream) const
 	}
 
 	kStream << m_iTourismBlastStrength;
+
+	kStream << m_iResearchBulbAmount; // NATEMOD
 
 	//  Write mission list
 	kStream << m_missionQueue.getLength();

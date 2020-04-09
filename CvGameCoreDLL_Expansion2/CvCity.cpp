@@ -5749,22 +5749,22 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 						// Great prophet?
 						if(GC.GetGameUnits()->GetEntry(eFreeUnitType)->IsFoundReligion())
 						{
-							GetCityCitizens()->DoSpawnGreatPerson(eFreeUnitType, true /*bIncrementCount*/, true);
+							// NATEMOD - Set arguments to false to stop great prophet increment
+							GetCityCitizens()->DoSpawnGreatPerson(eFreeUnitType, false /*bIncrementCount*/, false);
 						}
 						else
 						{
 							pFreeUnit = owningPlayer.initUnit(eFreeUnitType, getX(), getY());
 
-							// Bump up the count
 							if(pFreeUnit->IsGreatGeneral())
 							{
-								owningPlayer.incrementGreatGeneralsCreated();
+								// NATEMOD - Removed great general increment
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
 							}
 							else if(pFreeUnit->IsGreatAdmiral())
 							{
-								owningPlayer.incrementGreatAdmiralsCreated();
+								// NATEMOD - Removed great admiral increment
 								CvPlot *pSpawnPlot = owningPlayer.GetGreatAdmiralSpawnPlot(pFreeUnit);
 								if (pFreeUnit->plot() != pSpawnPlot)
 								{
@@ -5773,25 +5773,45 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 							}
 							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_WRITER"))
 							{
-								owningPlayer.incrementGreatWritersCreated();
+								// NATEMOD - Removed great writer increment
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
-							}							
+							}
 							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ARTIST"))
 							{
-								owningPlayer.incrementGreatArtistsCreated();
+								// NATEMOD - Removed great artist increment
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
-							}							
+							}
 							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN"))
 							{
-								owningPlayer.incrementGreatMusiciansCreated();
+								// NATEMOD - Removed great musician increment
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
-							}							
+							}
+							// NATEMOD - Seperating other great person incrementers if need to add back the increments
+							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_SCIENTIST"))
+							{
+								if (!pFreeUnit->jumpToNearestValidPlot())
+									pFreeUnit->kill(false);	// Could not find a valid spot!
+							}
+							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ENGINEER"))
+							{
+								if (!pFreeUnit->jumpToNearestValidPlot())
+									pFreeUnit->kill(false);	// Could not find a valid spot!
+							}
+							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MERCHANT"))
+							{
+								if (!pFreeUnit->jumpToNearestValidPlot())
+									pFreeUnit->kill(false);	// Could not find a valid spot!
+							}
+							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_PROPHET"))
+							{
+								if (!pFreeUnit->jumpToNearestValidPlot())
+									pFreeUnit->kill(false);	// Could not find a valid spot!
+							}
 							else if (pFreeUnit->IsGreatPerson())
 							{
-								owningPlayer.incrementGreatPeopleCreated();
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
 							}
@@ -8736,6 +8756,26 @@ void CvCity::SetIgnoreCityForHappiness(bool bValue)
 	m_bIgnoreCityForHappiness = bValue;
 }
 
+// NATEMOD - Tradition free walls
+//	--------------------------------------------------------------------------------
+/// Find the non-wonder walls building that provides the highest defense at the least cost
+BuildingTypes CvCity::ChooseFreeWallsBuilding() const
+{
+	CvString strWallBuildingClass = "BUILDINGCLASS_WALLS";
+	int iNumBuildingClassInfos = GC.getNumBuildingClassInfos();
+	for(int iI = 0; iI < iNumBuildingClassInfos; iI++)
+	{
+		const BuildingClassTypes eBuildingClass = static_cast<BuildingClassTypes>(iI);
+		CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+		if (pkBuildingClassInfo && pkBuildingClassInfo->GetType() == strWallBuildingClass)
+		{
+			return (BuildingTypes)getCivilizationInfo().getCivilizationBuildings(iI);
+		}
+	}
+
+	return NO_BUILDING;
+}
+
 //	--------------------------------------------------------------------------------
 /// Find the non-wonder building that provides the highest culture at the least cost
 BuildingTypes CvCity::ChooseFreeCultureBuilding() const
@@ -9398,8 +9438,21 @@ int CvCity::getBaseYieldRate(YieldTypes eIndex) const
 	iValue += GetBaseYieldRateFromSpecialists(eIndex);
 	iValue += GetBaseYieldRateFromMisc(eIndex);
 	iValue += GetBaseYieldRateFromReligion(eIndex);
+	iValue += GetBaseYieldRateFromGreatWorks(eIndex); // NATEMOD - Add yield from great works
 
 	return iValue;
+}
+
+// NATEMOD - Add other yields to great works
+//	--------------------------------------------------------------------------------
+/// Base yield rate from Great Works
+int CvCity::GetBaseYieldRateFromGreatWorks(YieldTypes eIndex) const
+{
+	VALIDATE_OBJECT
+	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
+	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
+
+	return GetCityBuildings()->GetYieldFromGreatWorks(eIndex);
 }
 
 //	--------------------------------------------------------------------------------
@@ -12737,6 +12790,8 @@ void CvCity::Purchase(UnitTypes eUnitType, BuildingTypes eBuildingType, ProjectT
 			}
 			else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_SCIENTIST"))
 			{
+				// NATEMOD - Scientists now bulb for science at birth
+				pUnit->SetResearchBulbAmount(kPlayer.GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), pUnit->getUnitInfo().GetBaseBeakersTurnsToCount()));
 				kPlayer.incrementScientistsFromFaith();
 			}
 			else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MERCHANT"))

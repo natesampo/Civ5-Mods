@@ -2403,6 +2403,19 @@ int CvCityCitizens::GetSpecialistUpgradeThreshold(UnitClassTypes eUnitClass)
 	{
 		iNumCreated = GET_PLAYER(GetCity()->getOwner()).getGreatMusiciansCreated();
 	}
+	// NATEMOD - Separation of great people
+	else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_SCIENTIST", true))
+	{
+		iNumCreated = GET_PLAYER(GetCity()->getOwner()).getGreatScientistsCreated();
+	}
+	else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_ENGINEER", true))
+	{
+		iNumCreated = GET_PLAYER(GetCity()->getOwner()).getGreatEngineersCreated();
+	}
+	else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MERCHANT", true))
+	{
+		iNumCreated = GET_PLAYER(GetCity()->getOwner()).getGreatMerchantsCreated();
+	}
 	else
 	{
 		iNumCreated = GET_PLAYER(GetCity()->getOwner()).getGreatPeopleCreated();
@@ -2471,13 +2484,31 @@ void CvCityCitizens::DoSpawnGreatPerson(UnitTypes eUnit, bool bIncrementCount, b
 		else if (newUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN"))
 		{
 			kPlayer.incrementGreatMusiciansCreated();
-		}		
+		}
+		// NATEMOD - Separate great people
+		else if (newUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_SCIENTIST"))
+		{
+			kPlayer.incrementGreatScientistsCreated();
+		}
+		else if (newUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ENGINEER"))
+		{
+			kPlayer.incrementGreatEngineersCreated();
+		}
+		else if (newUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MERCHANT"))
+		{
+			kPlayer.incrementGreatMerchantsCreated();
+		}
+		else if (newUnit->getUnitInfo().GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_PROPHET"))
+		{
+			kPlayer.incrementGreatProphetsCreated();
+		}
 		else
 		{
 			kPlayer.incrementGreatPeopleCreated();
 		}
 	}
-	if(bCountAsProphet || newUnit->getUnitInfo().IsFoundReligion())
+	// NATEMOD - Removed IsFoundReligion check to make free great prophets actually free
+	if(bCountAsProphet)
 	{
 		kPlayer.GetReligions()->ChangeNumProphetsSpawned(1);
 	}
@@ -2499,6 +2530,12 @@ void CvCityCitizens::DoSpawnGreatPerson(UnitTypes eUnit, bool bIncrementCount, b
 	if (newUnit->getUnitInfo().GetOneShotTourism() > 0)
 	{
 		newUnit->SetTourismBlastStrength(kPlayer.GetCulture()->GetTourismBlastStrength(newUnit->getUnitInfo().GetOneShotTourism()));
+	}
+
+	// NATEMOD - Great Scientists now bulb for science at point of birth
+	if (newUnit->getUnitInfo().GetBaseBeakersTurnsToCount() > 0)
+	{
+		newUnit->SetResearchBulbAmount(kPlayer.GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), newUnit->getUnitInfo().GetBaseBeakersTurnsToCount()));
 	}
 
 	// Notification

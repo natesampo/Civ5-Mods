@@ -1016,6 +1016,8 @@ public:
 	void SetGreatWork(GreatWorkType eGreatWork);
 	int GetTourismBlastStrength() const;
 	void SetTourismBlastStrength(int iValue);
+	int GetResearchBulbAmount() const; // NATEMOD
+	void SetResearchBulbAmount(int iValue); // NATEMOD
 
 	// Arbitrary Script Data
 	std::string getScriptData() const;
@@ -1469,6 +1471,7 @@ protected:
 	CvString m_strName;
 	GreatWorkType m_eGreatWork;
 	int m_iTourismBlastStrength;
+	int m_iResearchBulbAmount; // NATEMOD - New stored bulb amount
 
 	mutable CvPathNodeArray m_kLastPath;
 	mutable uint m_uiLastPathCacheDest;

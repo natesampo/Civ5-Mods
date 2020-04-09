@@ -33,6 +33,7 @@ CvPolicyEntry::CvPolicyEntry(void):
 	m_iCultureFromKills(0),
 	m_iCultureFromBarbarianKills(0),
 	m_iGoldFromKills(0),
+	m_iScienceFromKills(0), // NATEMOD - Science from kills
 	m_iEmbarkedExtraMoves(0),
 	m_iAttackBonusTurns(0),
 	m_iGoldenAgeTurns(0),
@@ -123,6 +124,7 @@ CvPolicyEntry::CvPolicyEntry(void):
 	m_iSharedIdeologyTourismModifier(0),
 	m_iLandTradeRouteGoldChange(0),
 	m_iSeaTradeRouteGoldChange(0),
+	m_iInternalTradeRouteGoldChange(0), // NATEMOD - Internal trade route gold
 	m_iSharedIdeologyTradeGoldChange(0),
 	m_iRiggingElectionModifier(0),
 	m_iMilitaryUnitGiftExtraInfluence(0),
@@ -138,6 +140,8 @@ CvPolicyEntry::CvPolicyEntry(void):
 	m_bMinorGreatPeopleAllies(false),
 	m_bMinorScienceAllies(false),
 	m_bMinorResourceBonus(false),
+	m_iCityStateBonusModifier(0), // NATEMOD - Allow extra bonus from city states
+	m_iExtraTourismPerGreatWork(0), // NATEMOD - Allow great works to have extra tourism
 	m_bGoldenAgeCultureBonusDisabled(false),
 	m_bSecondReligionPantheon(false),
 	m_bAddReformationBelief(false),
@@ -147,6 +151,7 @@ CvPolicyEntry::CvPolicyEntry(void):
 	m_iNumExtraBranches(0),
 	m_iHappinessToCulture(0),
 	m_iHappinessToScience(0),
+	m_iNumCitiesFreeWalls(0), // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding(0),
 	m_iNumCitiesFreeFoodBuilding(0),
 	m_bHalfSpecialistUnhappiness(false),
@@ -244,6 +249,7 @@ bool CvPolicyEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_iCultureFromKills = kResults.GetInt("CultureFromKills");
 	m_iCultureFromBarbarianKills = kResults.GetInt("CultureFromBarbarianKills");
 	m_iGoldFromKills = kResults.GetInt("GoldFromKills");
+	m_iScienceFromKills = kResults.GetInt("ScienceFromKills"); // NATEMOD - Science from kills
 	m_iEmbarkedExtraMoves = kResults.GetInt("EmbarkedExtraMoves");
 	m_iAttackBonusTurns = kResults.GetInt("AttackBonusTurns");
 	m_iGoldenAgeTurns = kResults.GetInt("GoldenAgeTurns");
@@ -320,6 +326,7 @@ bool CvPolicyEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_iHappyPerMilitaryUnit = kResults.GetInt("HappyPerMilitaryUnit");
 	m_iHappinessToCulture = kResults.GetInt("HappinessToCulture");
 	m_iHappinessToScience = kResults.GetInt("HappinessToScience");
+	m_iNumCitiesFreeWalls = kResults.GetInt("NumCitiesFreeWalls"); // NATEMOD - Add support for tradition NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding = kResults.GetInt("NumCitiesFreeCultureBuilding");
 	m_iNumCitiesFreeFoodBuilding = kResults.GetInt("NumCitiesFreeFoodBuilding");
 	m_bHalfSpecialistUnhappiness = kResults.GetBool("HalfSpecialistUnhappiness");
@@ -346,6 +353,7 @@ bool CvPolicyEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_iSharedIdeologyTourismModifier = kResults.GetInt("SharedIdeologyTourismModifier");
 	m_iLandTradeRouteGoldChange = kResults.GetInt("LandTradeRouteGoldChange");
 	m_iSeaTradeRouteGoldChange = kResults.GetInt("SeaTradeRouteGoldChange");
+	m_iInternalTradeRouteGoldChange = kResults.GetInt("InternalTradeRouteGoldChange"); // NATEMOD - Internal trade route gold
 	m_iSharedIdeologyTradeGoldChange = kResults.GetInt("SharedIdeologyTradeGoldChange");
 
 	m_iRiggingElectionModifier = kResults.GetInt("RiggingElectionModifier");
@@ -362,6 +370,8 @@ bool CvPolicyEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_bMinorGreatPeopleAllies = kResults.GetBool("MinorGreatPeopleAllies");
 	m_bMinorScienceAllies = kResults.GetBool("MinorScienceAllies");
 	m_bMinorResourceBonus = kResults.GetBool("MinorResourceBonus");
+	m_iCityStateBonusModifier = kResults.GetInt("CityStateBonusModifier"); // NATEMOD - City state extra bonus
+	m_iExtraTourismPerGreatWork = kResults.GetInt("ExtraTourismPerGreatWork"); // NATEMOD - Allow extra tourism from great works
 	m_bGoldenAgeCultureBonusDisabled = kResults.GetBool("GoldenAgeCultureBonusDisabled");
 	m_bSecondReligionPantheon = kResults.GetBool("SecondReligionPantheon");
 	m_bAddReformationBelief = kResults.GetBool("AddReformationBelief");
@@ -665,6 +675,13 @@ int CvPolicyEntry::GetCultureFromBarbarianKills() const
 int CvPolicyEntry::GetGoldFromKills() const
 {
 	return m_iGoldFromKills;
+}
+
+// NATEMOD - Science from kills
+/// Percentage of killed unit strength that is added as science
+int CvPolicyEntry::GetScienceFromKills() const
+{
+	return m_iScienceFromKills;
 }
 
 /// Extra moves for embarked units
@@ -1206,6 +1223,13 @@ int CvPolicyEntry::GetSeaTradeRouteGoldChange() const
 	return m_iSeaTradeRouteGoldChange;
 }
 
+// NATEMOD - Internal trade route gold
+/// Internal trade route gold boost
+int CvPolicyEntry::GetInternalTradeRouteGoldChange() const
+{
+	return m_iInternalTradeRouteGoldChange;
+}
+
 /// Trade route gold change with civs with whom you share an ideology
 int CvPolicyEntry::GetSharedIdeologyTradeGoldChange() const
 {
@@ -1296,6 +1320,20 @@ bool CvPolicyEntry::IsMinorResourceBonus() const
 	return m_bMinorResourceBonus;
 }
 
+// NATEMOD - Extra resources from city states
+/// Get city state bonus modifier?
+int CvPolicyEntry::GetCityStateBonusModifier() const
+{
+	return m_iCityStateBonusModifier;
+}
+
+// NATEMOD - Extra tourism from great works
+/// Get extra tourism per great work?
+int CvPolicyEntry::GetExtraTourismPerGreatWork() const
+{
+	return m_iExtraTourismPerGreatWork;
+}
+
 /// What Policy Branch does this Policy belong to?
 int CvPolicyEntry::GetPolicyBranchType() const
 {
@@ -1318,6 +1356,13 @@ int CvPolicyEntry::GetHappinessToCulture() const
 int CvPolicyEntry::GetHappinessToScience() const
 {
 	return m_iHappinessToScience;
+}
+
+// NATEMOD - Add support for tradition NumCitiesFreeWalls
+/// Cities that receive free Walls from tradition
+int CvPolicyEntry::GetNumCitiesFreeWalls() const
+{
+	return m_iNumCitiesFreeWalls;
 }
 
 /// Cities that receive a free culture building
@@ -2463,11 +2508,23 @@ int CvPlayerPolicies::GetNumericModifier(PolicyModifierType eType)
 			case POLICYMOD_GOLD_FROM_KILLS:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetGoldFromKills();
 				break;
+			// NATEMOD - Science from kills
+			case POLICYMOD_SCIENCE_FROM_KILLS:
+				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetScienceFromKills();
+				break;
 			case POLICYMOD_CULTURE_FROM_GARRISON:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetCulturePerGarrisonedUnit();
 				break;
 			case POLICYMOD_UNIT_FREQUENCY_MODIFIER:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetCityStateUnitFrequencyModifier();
+				break;
+			// NATEMOD - City state bonus resources
+			case POLICYMOD_CITY_STATE_BONUS_MODIFIER:
+				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetCityStateBonusModifier();
+				break;
+			// NATEMOD - Extra tourism for great works
+			case POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK:
+				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetExtraTourismPerGreatWork();
 				break;
 			case POLICYMOD_TOURISM_MOD_COMMON_FOE:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetCommonFoeTourismModifier();
@@ -2504,6 +2561,10 @@ int CvPlayerPolicies::GetNumericModifier(PolicyModifierType eType)
 				break;
 			case POLICYMOD_SEA_TRADE_GOLD_CHANGE:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetSeaTradeRouteGoldChange();
+				break;
+			// NATEMOD - Internal trade route gold
+			case POLICYMOD_INTERNAL_TRADE_GOLD_CHANGE:
+				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetInternalTradeRouteGoldChange();
 				break;
 			case POLICYMOD_SHARED_IDEOLOGY_TRADE_CHANGE:
 				rtnValue += m_pPolicies->GetPolicyEntry(i)->GetSharedIdeologyTradeGoldChange();

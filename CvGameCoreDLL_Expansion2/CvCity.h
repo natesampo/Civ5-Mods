@@ -493,6 +493,7 @@ public:
 	bool IsIgnoreCityForHappiness() const;
 	void SetIgnoreCityForHappiness(bool bValue);
 
+	BuildingTypes ChooseFreeWallsBuilding() const; // NATEMOD - Added free walls from tradition
 	BuildingTypes ChooseFreeCultureBuilding() const;
 	BuildingTypes ChooseFreeFoodBuilding() const;
 
@@ -561,6 +562,8 @@ public:
 
 	// Base Yield
 	int getBaseYieldRate(YieldTypes eIndex) const;
+
+	int GetBaseYieldRateFromGreatWorks(YieldTypes eIndex) const; // NATEMOD - Header for other yields from great works
 
 	int GetBaseYieldRateFromTerrain(YieldTypes eIndex) const;
 	void ChangeBaseYieldRateFromTerrain(YieldTypes eIndex, int iChange);
