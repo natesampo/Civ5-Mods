@@ -5923,6 +5923,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 
 	CvGoodyHuts::DoPlayerReceivedGoody(GetID(), eGoody);
 
+	// NATEMOD - Display yield from ruins if got gold, culture, or faith
+	int iNumYieldBonuses = 0;
+
 	strBuffer = kGoodyInfo.GetDescription();
 
 	// Gold
@@ -5933,6 +5936,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		GetTreasury()->ChangeGold(iGold);
 
 		strBuffer += GetLocalizedText("TXT_KEY_MISC_RECEIVED_GOLD", iGold);
+
+		// NATEMOD - Display yield from ruins if got gold
+		ReportYieldFromKill(YIELD_GOLD, iGold, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 
 	// Population
@@ -5971,6 +5978,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iCulture /= 100;
 
 		changeJONSCulture(iCulture);
+
+		// NATEMOD - Display yield from ruins if got culture
+		ReportYieldFromKill(YIELD_CULTURE, iCulture, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 
 	// Faith
@@ -5982,6 +5993,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith /= 100;
 
 		ChangeFaith(iFaith);
+
+		// NATEMOD - Display yield from ruins if got faith
+		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 
 	// Faith for pantheon
@@ -5994,6 +6009,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith /= iDivisor;
 		iFaith *= iDivisor;
 		ChangeFaith(iFaith);
+
+		// NATEMOD - Display yield from ruins if got faith
+		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 
 	// Faith for percent of great prophet
@@ -6005,6 +6024,10 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith /= iDivisor;
 		iFaith *= iDivisor;
 		ChangeFaith(iFaith);
+
+		// NATEMOD - Display yield from ruins if got faith
+		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 
 	// Reveal Nearby Barbs
@@ -6538,15 +6561,13 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 			// Any valid Goodies?
 			if(avValidGoodies.size() > 0)
 			{
-				if (pUnit && pUnit->isHasPromotion((PromotionTypes)GC.getPROMOTION_GOODY_HUT_PICKER()))
+				// NATEMOD - Fixed AI Shoshone pathfinders not getting anything from ruins. Instead they just get a random reward like everyone else.
+				if (pUnit && GC.getGame().getActivePlayer() == GetID() && pUnit->isHasPromotion((PromotionTypes)GC.getPROMOTION_GOODY_HUT_PICKER()))
 				{
-					if(GC.getGame().getActivePlayer() == GetID())
-					{
-						CvPopupInfo kPopupInfo(BUTTONPOPUP_CHOOSE_GOODY_HUT_REWARD, GetID(), pUnit->GetID());
-						GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
-						// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
-						CancelActivePlayerEndTurn();
-					}
+					CvPopupInfo kPopupInfo(BUTTONPOPUP_CHOOSE_GOODY_HUT_REWARD, GetID(), pUnit->GetID());
+					GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
+					// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
+					CancelActivePlayerEndTurn();
 				}
 				else
 				{
@@ -21585,7 +21606,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 									}
 									else if(pNewUnit->IsGreatPerson())
 									{
-										incrementGreatPeopleCreated();
+										// NATEMOD - Policies now grant actually free great people
 										pNewUnit->jumpToNearestValidPlot();
 									}
 									else

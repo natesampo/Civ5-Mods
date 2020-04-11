@@ -97,6 +97,10 @@ CvTraitEntry::CvTraitEntry() :
 	m_bTechBoostFromCapitalScienceBuildings(false),
 	m_bStaysAliveZeroCities(false),
 	m_bFaithFromUnimprovedForest(false),
+	m_bEarnsGreatPersonOnSlotOrGuild(false), // NATEMOD - New France UA
+	m_bHasBuiltWritersGuild(false), // NATEMOD - New France UA
+	m_bHasBuiltArtistsGuild(false), // NATEMOD - New France UA
+	m_bHasBuiltMusiciansGuild(false), // NATEMOD - New France UA
 	m_bBonusReligiousBelief(false),
 	m_bAbleToAnnexCityStates(false),
 	m_bCrossesMountainsAfterGreatGeneral(false),
@@ -592,6 +596,55 @@ bool CvTraitEntry::IsFaithFromUnimprovedForest() const
 	return m_bFaithFromUnimprovedForest;
 }
 
+// NATEMOD
+// Accessor: does this civ get free cultural Great People from Guilds and Wonders with Great Works Slots?
+bool CvTraitEntry::IsEarnsGreatPersonOnSlotOrGuild() const
+{
+	return m_bEarnsGreatPersonOnSlotOrGuild;
+}
+
+// NATEMOD
+// Accessor: has this civ already built a writer's guild?
+bool CvTraitEntry::IsHasBuiltWritersGuild() const
+{
+	return m_bHasBuiltWritersGuild;
+};
+
+// NATEMOD
+// Mutator: set whether this civ has already built a writer's guild
+void CvTraitEntry::SetHasBuiltWritersGuild(bool hasBuilt)
+{
+	m_bHasBuiltWritersGuild = hasBuilt;
+};
+
+// NATEMOD
+// Accessor: has this civ already built an artist's guild?
+bool CvTraitEntry::IsHasBuiltArtistsGuild() const
+{
+	return m_bHasBuiltArtistsGuild;
+};
+
+// NATEMOD
+// Mutator: set whether this civ has already built a writer's guild
+void CvTraitEntry::SetHasBuiltArtistsGuild(bool hasBuilt)
+{
+	m_bHasBuiltArtistsGuild = hasBuilt;
+};
+
+// NATEMOD
+// Accessor: has this civ already built a musician's guild?
+bool CvTraitEntry::IsHasBuiltMusiciansGuild() const
+{
+	return m_bHasBuiltMusiciansGuild;
+};
+
+// NATEMOD
+// Mutator: set whether this civ has already built a writer's guild
+void CvTraitEntry::SetHasBuiltMusiciansGuild(bool hasBuilt)
+{
+	m_bHasBuiltMusiciansGuild = hasBuilt;
+};
+
 /// Accessor: does this civ get a bonus religious belief?
 bool CvTraitEntry::IsBonusReligiousBelief() const
 {
@@ -971,6 +1024,7 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 	m_bTechBoostFromCapitalScienceBuildings = kResults.GetBool("TechBoostFromCapitalScienceBuildings");
 	m_bStaysAliveZeroCities = kResults.GetBool("StaysAliveZeroCities");
 	m_bFaithFromUnimprovedForest = kResults.GetBool("FaithFromUnimprovedForest");
+	m_bEarnsGreatPersonOnSlotOrGuild = kResults.GetBool("EarnsGreatPersonOnSlotOrGuild"); // NATEMOD - New France UA
 	m_bBonusReligiousBelief = kResults.GetBool("BonusReligiousBelief");
 	m_bAbleToAnnexCityStates = kResults.GetBool("AbleToAnnexCityStates");
 	m_bCrossesMountainsAfterGreatGeneral = kResults.GetBool("CrossesMountainsAfterGreatGeneral");
@@ -1424,6 +1478,11 @@ void CvPlayerTraits::InitPlayerTraits()
 			{
 				m_bFaithFromUnimprovedForest = true;
 			}
+			// NATEMOD - New France UA
+			if(trait->IsEarnsGreatPersonOnSlotOrGuild())
+			{
+				m_bEarnsGreatPersonOnSlotOrGuild = true;
+			}
 			if(trait->IsBonusReligiousBelief())
 			{
 				m_bBonusReligiousBelief = true;
@@ -1645,6 +1704,10 @@ void CvPlayerTraits::Reset()
 	m_bTechBoostFromCapitalScienceBuildings = false;
 	m_bStaysAliveZeroCities = false;
 	m_bFaithFromUnimprovedForest = false;
+	m_bEarnsGreatPersonOnSlotOrGuild = false; // NATEMOD - New France UA
+	m_bHasBuiltWritersGuild = false; // NATEMOD - New France UA
+	m_bHasBuiltArtistsGuild = false; // NATEMOD - New France UA
+	m_bHasBuiltMusiciansGuild = false; // NATEMOD - New France UA
 	m_bBonusReligiousBelief = false;
 	m_bAbleToAnnexCityStates = false;
 	m_bCrossesMountainsAfterGreatGeneral = false;
@@ -2685,6 +2748,11 @@ void CvPlayerTraits::Read(FDataStream& kStream)
 
 	kStream >> m_bFaithFromUnimprovedForest;
 
+	kStream >> m_bEarnsGreatPersonOnSlotOrGuild; // NATEMOD - New France UA
+	kStream >> m_bHasBuiltWritersGuild; // NATEMOD - New France UA
+	kStream >> m_bHasBuiltArtistsGuild; // NATEMOD - New France UA
+	kStream >> m_bHasBuiltMusiciansGuild; // NATEMOD - New France UA
+
 	kStream >> m_bBonusReligiousBelief;
 
 	kStream >> m_bAbleToAnnexCityStates;
@@ -2932,6 +3000,10 @@ void CvPlayerTraits::Write(FDataStream& kStream)
 	kStream << m_bTechBoostFromCapitalScienceBuildings;
 	kStream << m_bStaysAliveZeroCities;
 	kStream << m_bFaithFromUnimprovedForest;
+	kStream << m_bEarnsGreatPersonOnSlotOrGuild; // NATEMOD - New France UA
+	kStream << m_bHasBuiltWritersGuild; // NATEMOD - New France UA
+	kStream << m_bHasBuiltArtistsGuild; // NATEMOD - New France UA
+	kStream << m_bHasBuiltMusiciansGuild; // NATEMOD - New France UA
 	kStream << m_bBonusReligiousBelief;
 	kStream << m_bAbleToAnnexCityStates;
 	kStream << m_bCrossesMountainsAfterGreatGeneral;

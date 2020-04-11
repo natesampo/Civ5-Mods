@@ -3988,6 +3988,15 @@ bool CvPlot::isValidRoute(const CvUnit* pUnit) const
 		}
 	}
 
+	// NATEMOD - Iroquois roads and forests fix
+	if (pUnit->getOwner() != NO_PLAYER && GET_PLAYER(pUnit->getOwner()).GetPlayerTraits()->IsMoveFriendlyWoodsAsRoad())
+	{
+		if (getOwner() == pUnit->getOwner() && (getFeatureType() == FEATURE_FOREST || getFeatureType() == FEATURE_JUNGLE))
+		{
+			return true;
+		}
+	}
+
 	return false;
 }
 

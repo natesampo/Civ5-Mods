@@ -136,6 +136,7 @@ CvBuildingEntry::CvBuildingEntry(void):
 	m_bPlayerBorderObstacle(false),
 	m_bCapital(false),
 	m_bGoldenAge(false),
+	m_bGrantsFreeCulturalGreatPersonWithTrait(false), // NATEMOD - New France UA
 	m_bMapCentering(false),
 	m_bNeverCapture(false),
 	m_bNukeImmune(false),
@@ -262,6 +263,7 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 	m_bPlayerBorderObstacle = kResults.GetBool("PlayerBorderObstacle");
 	m_bCapital = kResults.GetBool("Capital");
 	m_bGoldenAge = kResults.GetBool("GoldenAge");
+	m_bGrantsFreeCulturalGreatPersonWithTrait = kResults.GetBool("GrantsFreeCulturalGreatPersonWithTrait"); // NATEMOD - New France UA
 	m_bMapCentering = kResults.GetBool("MapCentering");
 	m_bNeverCapture = kResults.GetBool("NeverCapture");
 	m_bNukeImmune = kResults.GetBool("NukeImmune");
@@ -1448,6 +1450,13 @@ bool CvBuildingEntry::IsCapital() const
 bool CvBuildingEntry::IsGoldenAge() const
 {
 	return m_bGoldenAge;
+}
+
+// NATEMOD - New France UA begin
+/// Does this building spawn cultural great person if the civ has the trait that allows it?
+bool CvBuildingEntry::IsGrantsFreeCulturalGreatPersonWithTrait() const
+{
+	return m_bGrantsFreeCulturalGreatPersonWithTrait;
 }
 
 /// Is the map centered after this building is constructed?

@@ -134,6 +134,13 @@ public:
 	bool IsTechBoostFromCapitalScienceBuildings() const;
 	bool IsStaysAliveZeroCities() const;
 	bool IsFaithFromUnimprovedForest() const;
+	bool IsEarnsGreatPersonOnSlotOrGuild() const; // NATEMOD - New France UA
+	bool IsHasBuiltWritersGuild() const; // NATEMOD - New France UA
+	void SetHasBuiltWritersGuild(bool hasBuilt); // NATEMOD - New France UA
+	bool IsHasBuiltArtistsGuild() const; // NATEMOD - New France UA
+	void SetHasBuiltArtistsGuild(bool hasBuilt); // NATEMOD - New France UA
+	bool IsHasBuiltMusiciansGuild() const; // NATEMOD - New France UA
+	void SetHasBuiltMusiciansGuild(bool hasBuilt); // NATEMOD - New France UA
 	bool IsBonusReligiousBelief() const;
 	bool IsAbleToAnnexCityStates() const;
 	bool IsCrossesMountainsAfterGreatGeneral() const;
@@ -258,6 +265,10 @@ protected:
 	bool m_bTechBoostFromCapitalScienceBuildings;
 	bool m_bStaysAliveZeroCities;
 	bool m_bFaithFromUnimprovedForest;
+	bool m_bEarnsGreatPersonOnSlotOrGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltWritersGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltArtistsGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltMusiciansGuild; // NATEMOD - New France UA
 	bool m_bBonusReligiousBelief;
 	bool m_bAbleToAnnexCityStates;
 	bool m_bCrossesMountainsAfterGreatGeneral;
@@ -645,6 +656,41 @@ public:
 	{
 		return m_bStaysAliveZeroCities;
 	};
+	// NATEMOD - New France UA
+	bool IsEarnsGreatPersonOnSlotOrGuild() const
+	{
+		return m_bEarnsGreatPersonOnSlotOrGuild;
+	};
+	// NATEMOD - New France UA
+	bool IsHasBuiltWritersGuild() const
+	{
+		return m_bHasBuiltWritersGuild;
+	};
+	// NATEMOD - New France UA
+	void SetHasBuiltWritersGuild(bool hasBuilt)
+	{
+		m_bHasBuiltWritersGuild = hasBuilt;
+	};
+	// NATEMOD - New France UA
+	bool IsHasBuiltArtistsGuild() const
+	{
+		return m_bHasBuiltArtistsGuild;
+	};
+	// NATEMOD - New France UA
+	void SetHasBuiltArtistsGuild(bool hasBuilt)
+	{
+		m_bHasBuiltArtistsGuild = hasBuilt;
+	};
+	// NATEMOD - New France UA
+	bool IsHasBuiltMusiciansGuild() const
+	{
+		return m_bHasBuiltMusiciansGuild;
+	};
+	// NATEMOD - New France UA
+	void SetHasBuiltMusiciansGuild(bool hasBuilt)
+	{
+		m_bHasBuiltMusiciansGuild = hasBuilt;
+	};
 	bool IsFaithFromUnimprovedForest() const
 	{
 		return m_bFaithFromUnimprovedForest;
@@ -857,6 +903,10 @@ private:
 	bool m_bTechBoostFromCapitalScienceBuildings;
 	bool m_bStaysAliveZeroCities;
 	bool m_bFaithFromUnimprovedForest;
+	bool m_bEarnsGreatPersonOnSlotOrGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltWritersGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltArtistsGuild; // NATEMOD - New France UA
+	bool m_bHasBuiltMusiciansGuild; // NATEMOD - New France UA
 	bool m_bBonusReligiousBelief;
 	bool m_bAbleToAnnexCityStates;
 	bool m_bCrossesMountainsAfterGreatGeneral;

@@ -951,8 +951,9 @@ int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist)
 
 	CvPlayer* pPlayer = m_pCity->GetPlayer();
 
+	// NATEMOD - Specialists consuming half food now actually checks the food consumption value instead of assuming the default 2
 	// factor in the fact that specialists may need less food
-	int iFoodConsumptionBonus = (pPlayer->isHalfSpecialistFood()) ? 1 : 0;
+	int iFoodConsumptionBonus = (pPlayer->isHalfSpecialistFood()) ? GC.getFOOD_CONSUMPTION_PER_POPULATION() / 2 : 0;
 
 	// Yield Values
 	int iFoodYieldValue = (GC.getAI_CITIZEN_VALUE_FOOD() * (pPlayer->specialistYield(eSpecialist, YIELD_FOOD) + iFoodConsumptionBonus));
@@ -1027,7 +1028,8 @@ int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist)
 		// If our surplus is not at least 2, really emphasize food plots
 		else if(!bAvoidGrowth)
 		{
-			int iFoodT100NeededFor2 = 200 - iExcessFoodTimes100;
+			// NATEMOD - Actually check food consumption per pop rather than assuming 2
+			int iFoodT100NeededFor2 = 100 * GC.getFOOD_CONSUMPTION_PER_POPULATION() - iExcessFoodTimes100;
 
 			if(iFoodT100NeededFor2 > 0)
 			{

@@ -73,25 +73,38 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 
 	if(pFromPlot->isValidRoute(pUnit) && pToPlot->isValidRoute(pUnit) && ((kUnitTeam.isBridgeBuilding() || !(pFromPlot->isRiverCrossing(directionXY(pFromPlot, pToPlot))))))
 	{
-		CvRouteInfo* pFromRouteInfo = GC.getRouteInfo(pFromPlot->getRouteType());
+		// NATEMOD - Iroquois forest roads fix
+		RouteTypes eFromPlotRoute = pFromPlot->getRouteType();
+		RouteTypes eToPlotRoute = pToPlot->getRouteType();
+		if (pTraits->IsMoveFriendlyWoodsAsRoad())
+		{
+			if (eFromPlotRoute == NO_ROUTE)
+				eFromPlotRoute = ROUTE_ROAD;
+			if (eToPlotRoute == NO_ROUTE)
+				eToPlotRoute = ROUTE_ROAD;
+		}
+		CvRouteInfo* pFromRouteInfo = GC.getRouteInfo(eFromPlotRoute);
 		CvAssert(pFromRouteInfo != NULL);
 
 		int iFromMovementCost = (pFromRouteInfo != NULL)? pFromRouteInfo->getMovementCost() : 0;
 		int iFromFlatMovementCost = (pFromRouteInfo != NULL)? pFromRouteInfo->getFlatMovementCost() : 0;
 
-		CvRouteInfo* pRouteInfo = GC.getRouteInfo(pToPlot->getRouteType());
+		// NATEMOD - Iroquois forest roads fix
+		CvRouteInfo* pRouteInfo = GC.getRouteInfo(eToPlotRoute);
 		CvAssert(pRouteInfo != NULL);
 
 		int iMovementCost = (pRouteInfo != NULL)? pRouteInfo->getMovementCost() : 0;
 		int iFlatMovementCost = (pRouteInfo != NULL)? pRouteInfo->getFlatMovementCost() : 0;
 
-		iRouteCost = std::max(iFromMovementCost + kUnitTeam.getRouteChange(pFromPlot->getRouteType()), iMovementCost + kUnitTeam.getRouteChange(pToPlot->getRouteType()));
+		// NATEMOD - Iroquois forest roads fix
+		iRouteCost = std::max(iFromMovementCost + kUnitTeam.getRouteChange(eFromPlotRoute), iMovementCost + kUnitTeam.getRouteChange(eToPlotRoute));
 		iRouteFlatCost = std::max(iFromFlatMovementCost * iBaseMoves, iFlatMovementCost * iBaseMoves);
 	}
-	else if(pUnit->getOwner() == pToPlot->getOwner() && (eFeature == FEATURE_FOREST || eFeature == FEATURE_JUNGLE) && pTraits->IsMoveFriendlyWoodsAsRoad())
+	// NATEMOD - Iroquois forest roads fix
+	else if (pTraits->IsMoveFriendlyWoodsAsRoad() && pUnit->getOwner() == pToPlot->getOwner() && (eFeature == FEATURE_FOREST || eFeature == FEATURE_JUNGLE))
 	{
 		CvRouteInfo* pRoadInfo = GC.getRouteInfo(ROUTE_ROAD);
-		iRouteCost = pRoadInfo->getMovementCost();
+		iRouteCost = pRoadInfo->getMovementCost() + kUnitTeam.getRouteChange(ROUTE_ROAD);
 		iRouteFlatCost = pRoadInfo->getFlatMovementCost() * iBaseMoves;
 	}
 	else
@@ -185,8 +198,9 @@ bool CvUnitMovement::ConsumesAllMoves(const CvUnit* pUnit, const CvPlot* pFromPl
 	// if the unit can embark and we are transitioning from land to water or vice versa
 	if(pToPlot->isWater() != pFromPlot->isWater() && pUnit->CanEverEmbark())
 	{
+		// NATEMOD - Fixed unit having to be embarked to check for consuming all movement. This only mattered when playing Denmark and trying to go Land -> Water -> Land
 		// Is the unit from a civ that can disembark for just 1 MP?
-		if(!pToPlot->isWater() && pFromPlot->isWater() && pUnit->isEmbarked() && GET_PLAYER(pUnit->getOwner()).GetPlayerTraits()->IsEmbarkedToLandFlatCost())
+		if(!pToPlot->isWater() && pFromPlot->isWater() && pUnit->CanEverEmbark() && GET_PLAYER(pUnit->getOwner()).GetPlayerTraits()->IsEmbarkedToLandFlatCost())
 		{
 			return false;	// Then no, it does not.
 		}
@@ -217,8 +231,9 @@ bool CvUnitMovement::CostsOnlyOne(const CvUnit* pUnit, const CvPlot* pFromPlot, 
 		return true;
 	}
 
+	// NATEMOD - Fixed unit having to be embarked to check for one movement cost. This only mattered when playing Denmark and trying to go Land -> Water -> Land
 	// Is the unit from a civ that can disembark for just 1 MP?
-	if(!pToPlot->isWater() && pFromPlot->isWater() && pUnit->isEmbarked() && GET_PLAYER(pUnit->getOwner()).GetPlayerTraits()->IsEmbarkedToLandFlatCost())
+	if(!pToPlot->isWater() && pFromPlot->isWater() && pUnit->CanEverEmbark() && GET_PLAYER(pUnit->getOwner()).GetPlayerTraits()->IsEmbarkedToLandFlatCost())
 	{
 		return true;
 	}
@@ -255,7 +270,8 @@ bool CvUnitMovement::IsSlowedByZOC(const CvUnit* pUnit, const CvPlot* pFromPlot,
 			if(NULL != pAdjPlot)
 			{
 				// check city zone of control
-				if(pAdjPlot->isEnemyCity(*pUnit))
+				// NATEMOD - Fix indirect zone of control radar
+				if(pAdjPlot->isEnemyCity(*pUnit) && (pAdjPlot->isRevealed(pUnit->getTeam()) || pUnit->plot() == pFromPlot))
 				{
 					// Loop through plots adjacent to the enemy city and see if it's the same as our unit's Destination Plot
 					for(int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++)
@@ -271,6 +287,10 @@ bool CvUnitMovement::IsSlowedByZOC(const CvUnit* pUnit, const CvPlot* pFromPlot,
 						}
 					}
 				}
+
+				// NATEMOD - Fix indirect zone of control radar
+				if (!pAdjPlot->isVisible(pUnit->getTeam()) && pUnit->plot() != pFromPlot)
+					continue;
 
 				pAdjUnitNode = pAdjPlot->headUnitNode();
 				// Loop through all units to see if there's an enemy unit here

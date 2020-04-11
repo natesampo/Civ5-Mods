@@ -738,17 +738,22 @@ void CvGameReligions::FoundPantheon(PlayerTypes ePlayer, BeliefTypes eBelief)
 	iIncrement /= 100;
 	SetMinimumFaithNextPantheon(GetMinimumFaithNextPantheon() + iIncrement);
 
-	ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-	if(pkScriptSystem) 
+	// NATEMOD - Fixed issue where a player trying to found a pantheon without a capitol would cause a null pointer
+	CvCity* pCapitol = GET_PLAYER(ePlayer).getCapitalCity();
+	if (pCapitol)
 	{
-		CvLuaArgsHandle args;
-		args->Push(ePlayer);
-		args->Push(GET_PLAYER(ePlayer).getCapitalCity()->GetID());
-		args->Push(RELIGION_PANTHEON);
-		args->Push(eBelief);
+		ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
+		if(pkScriptSystem) 
+		{
+			CvLuaArgsHandle args;
+			args->Push(ePlayer);
+			args->Push(pCapitol->GetID());
+			args->Push(RELIGION_PANTHEON);
+			args->Push(eBelief);
 
-		bool bResult;
-		LuaSupport::CallHook(pkScriptSystem, "PantheonFounded", args.get(), bResult);
+			bool bResult;
+			LuaSupport::CallHook(pkScriptSystem, "PantheonFounded", args.get(), bResult);
+		}
 	}
 
 	// Spread the pantheon into each of their cities
@@ -3805,60 +3810,7 @@ void CvCityReligions::CityConvertsReligion(ReligionTypes eMajority, ReligionType
 			}
 		}
 
-		if(m_pCity->isCapital() && pNewReligion->m_eFounder == GC.getGame().getActivePlayer())
-		{
-			//Determine if this is a standard size or larger map.
-			bool bIsStandardOrLarger = false;
-			Database::Connection* pDB = GC.GetGameDatabase();
-			Database::Results kStandardSize;
-			if(pDB->SelectAt(kStandardSize, "Worlds", "Type", "WORLDSIZE_STANDARD"))
-			{
-				if(kStandardSize.Step())
-				{
-					int idColumn = kStandardSize.ColumnPosition("ID");
-					if(idColumn >= 0)
-					{
-						WorldSizeTypes eWorldSize = GC.getMap().getWorldSize();
-						int standardWorldSize = kStandardSize.GetInt(idColumn);
-						if(eWorldSize >= standardWorldSize)
-						{
-							bIsStandardOrLarger = true;
-						}
-					}
-				}
-			}
-
-			if(bIsStandardOrLarger)
-			{
-				//Determine if this religion has spread to all capitals
-				bool bSpreadToAllCapitals = true;
-				for(int i = 0; i < MAX_MAJOR_CIVS; ++i)
-				{
-					CvPlayerAI& kPlayer = GET_PLAYER(static_cast<PlayerTypes>(i));
-					if(kPlayer.isAlive())
-					{
-						CvCity* pCapital = kPlayer.getCapitalCity();
-						if(pCapital != NULL)
-						{
-							CvCityReligions* pCityReligions = pCapital->GetCityReligions();
-							if(pCityReligions != NULL)
-							{
-								if(pCityReligions->GetReligiousMajority() != pNewReligion->m_eFounder)
-								{
-									bSpreadToAllCapitals = false;
-									break;
-								}
-							}
-						}
-					}
-
-					if(bSpreadToAllCapitals)
-					{
-						gDLL->UnlockAchievement(ACHIEVEMENT_XP1_19);
-					}
-				}
-			}
-		}
+		// NATEMOD - Moved we are family to Achievement Unlocker start of turn to check if capital has been eliminated and is now accomplished
 
 		// Diplo implications (there must have been religion switch and a responsible party)
 		if(eMajority != eOldMajority && eResponsibleParty != NO_PLAYER)

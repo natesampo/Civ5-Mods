@@ -2679,7 +2679,7 @@ bool CvUnit::canMoveInto(const CvPlot& plot, byte bMoveFlags) const
 		else //if !(bMoveFlags & MOVEFLAG_ATTACK)
 		{
 			bool bEmbarkedAndAdjacent = false;
-			bool bEnemyUnitPresent = false;
+			// NATEMOD - Fix radar on emarked units
 
 			// Without this code, Embarked Units can move on top of enemies because they have no visibility
 			if(isEmbarked() || (bMoveFlags & MOVEFLAG_PRETEND_EMBARKED))
@@ -2690,41 +2690,20 @@ bool CvUnit::canMoveInto(const CvPlot& plot, byte bMoveFlags) const
 				}
 			}
 
-			bool bPlotContainsCombat = false;
-			if(plot.getNumUnits())
+			// NATEMOD - Fix radar on emarked units
+			if (!isHuman() || plot.isVisible(getTeam()) || bEmbarkedAndAdjacent)
 			{
+				if (plot.isEnemyCity(*this))
+				{
+					return false;
+				}
+
 				for(int iUnitLoop = 0; iUnitLoop < plot.getNumUnits(); iUnitLoop++)
 				{
 					CvUnit* loopUnit = plot.getUnitByIndex(iUnitLoop);
 
-					if(loopUnit && GET_TEAM(getTeam()).isAtWar(plot.getUnitByIndex(iUnitLoop)->getTeam()))
-					{
-						bEnemyUnitPresent = true;
-						if(!loopUnit->IsDead() && loopUnit->isInCombat())
-						{
-							if(loopUnit->getCombatUnit() != this)
-								bPlotContainsCombat = true;
-						}
-						break;
-					}
-				}
-			}
-
-			if(bPlotContainsCombat)
-			{
-				return false;		// Can't enter a plot that contains combat that doesn't involve us.
-			}
-
-			if(!isHuman() || plot.isVisible(getTeam()) || bEmbarkedAndAdjacent)
-			{
-				if(plot.isEnemyCity(*this))
-				{
-					return false;
-				}
-
-				if(plot.isVisibleEnemyUnit(this) || (bEmbarkedAndAdjacent && bEnemyUnitPresent))
-				{
-					return false;
+					if (loopUnit && (GET_TEAM(getTeam()).isAtWar(loopUnit->getTeam()) || loopUnit->isAlwaysHostile(plot)) && !loopUnit->canCoexistWithEnemyUnit(getTeam()))
+						return false;
 				}
 			}
 		}
@@ -10260,16 +10239,6 @@ int CvUnit::GetGenericMaxStrengthModifier(const CvUnit* pOtherUnit, const CvPlot
 				}
 			}
 		}
-
-		// Trait (player level) bonus against larger civs
-		iTempModifier = GET_PLAYER(getOwner()).GetPlayerTraits()->GetCombatBonusVsLargerCiv();
-		if(iTempModifier > 0)
-		{
-			if(pOtherUnit && pOtherUnit->IsLargerCivThan(this))
-			{
-				iModifier += iTempModifier;
-			}
-		}
 	}
 
 	////////////////////////
@@ -10344,6 +10313,17 @@ int CvUnit::GetGenericMaxStrengthModifier(const CvUnit* pOtherUnit, const CvPlot
 			if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS))
 			{
 				iModifier += 25;
+			}
+		}
+
+		// NATEMOD - Relies on pOtherUnit being defined, not pBattlePlot, so moved into this conditional for consistency
+		// Trait (player level) bonus against larger civs
+		iTempModifier = GET_PLAYER(getOwner()).GetPlayerTraits()->GetCombatBonusVsLargerCiv();
+		if(iTempModifier > 0)
+		{
+			if(pOtherUnit->IsLargerCivThan(this))
+			{
+				iModifier += iTempModifier;
 			}
 		}
 	}

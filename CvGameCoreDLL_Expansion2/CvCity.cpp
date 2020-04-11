@@ -5733,6 +5733,67 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			// Free Units
 			CvUnit* pFreeUnit;
 
+			// NATEMOD - France new UA
+			if(pBuildingInfo->IsGrantsFreeCulturalGreatPersonWithTrait() && isCapital() && owningPlayer.GetPlayerTraits()->IsEarnsGreatPersonOnSlotOrGuild())
+			{
+				bool getWriter = false;
+				bool getArtist = false;
+				bool getMusician = false;
+				if (pBuildingInfo->GetGreatWorkCount() > 0) // it has great work slots and is marked as something that gives France the bonus
+				{
+					GreatWorkSlotType slotType = pBuildingInfo->GetGreatWorkSlotType();
+					if (slotType == CvTypes::getGREAT_WORK_SLOT_LITERATURE())
+					{
+						getWriter = true;
+					}
+					else if (slotType == CvTypes::getGREAT_WORK_SLOT_ART_ARTIFACT())
+					{
+						getArtist = true;
+					}
+					else if (slotType == CvTypes::getGREAT_WORK_SLOT_MUSIC())
+					{
+						getMusician = true;
+					}
+				}
+				else // check for guilds, they also give France the bonus
+				{
+					int buildingType = pBuildingInfo->GetBuildingClassType();
+					if (buildingType == GC.getInfoTypeForString("BUILDINGCLASS_WRITERS_GUILD") && !owningPlayer.GetPlayerTraits()->IsHasBuiltWritersGuild())
+					{
+						owningPlayer.GetPlayerTraits()->SetHasBuiltWritersGuild(true);
+						getWriter = true;
+					}
+					else if (buildingType == GC.getInfoTypeForString("BUILDINGCLASS_ARTISTS_GUILD") && !owningPlayer.GetPlayerTraits()->IsHasBuiltArtistsGuild())
+					{
+						owningPlayer.GetPlayerTraits()->SetHasBuiltArtistsGuild(true);
+						getArtist = true;
+					}
+					else if (buildingType == GC.getInfoTypeForString("BUILDINGCLASS_MUSICIANS_GUILD") && !owningPlayer.GetPlayerTraits()->IsHasBuiltMusiciansGuild())
+					{
+						owningPlayer.GetPlayerTraits()->SetHasBuiltMusiciansGuild(true);
+						getMusician = true;
+					}
+				}
+
+				for(int iUnitLoop = 0; iUnitLoop < GC.getNumUnitInfos(); iUnitLoop++)
+				{
+					const UnitTypes eUnit = static_cast<UnitTypes>(iUnitLoop);
+					CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnit);
+					if (pkUnitInfo)
+					{
+						const UnitTypes eFreeUnitType = (UnitTypes)thisCiv.getCivilizationUnits((UnitClassTypes)pkUnitInfo->GetUnitClassType());
+						if ((getWriter && pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_WRITER")) ||
+							(getArtist && pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ARTIST")) ||
+							(getMusician && pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN")))
+						{
+							pFreeUnit = owningPlayer.initUnit(eFreeUnitType, getX(), getY());
+							if (!pFreeUnit->jumpToNearestValidPlot())
+								pFreeUnit->kill(false);	// Could not find a valid spot!
+						}
+					}
+				}
+			}
+
 			int iFreeUnitLoop;
 
 			for(int iUnitLoop = 0; iUnitLoop < GC.getNumUnitInfos(); iUnitLoop++)

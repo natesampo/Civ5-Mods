@@ -208,6 +208,7 @@ public:
 	bool IsCityWall() const;
 	bool IsCapital() const;
 	bool IsGoldenAge() const;
+	bool IsGrantsFreeCulturalGreatPersonWithTrait() const; // NATEMOD - New France UA
 	bool IsMapCentering() const;
 	bool IsNeverCapture() const;
 	bool IsNukeImmune() const;
@@ -421,6 +422,7 @@ private:
 	bool m_bPlayerBorderObstacle;
 	bool m_bCapital;
 	bool m_bGoldenAge;
+	bool m_bGrantsFreeCulturalGreatPersonWithTrait; // NATEMOD - New France UA
 	bool m_bMapCentering;
 	bool m_bNeverCapture;
 	bool m_bNukeImmune;

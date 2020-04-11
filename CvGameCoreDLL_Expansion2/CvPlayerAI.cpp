@@ -446,7 +446,8 @@ void CvPlayerAI::AI_chooseFreeGreatPerson()
 			CvCity* pCapital = getCapitalCity();
 			if(pCapital)
 			{
-				pCapital->GetCityCitizens()->DoSpawnGreatPerson(eDesiredGreatPerson, true, false);
+				// NATEMOD - AI also get free great people
+				pCapital->GetCityCitizens()->DoSpawnGreatPerson(eDesiredGreatPerson, false, false);
 			}
 			ChangeNumFreeGreatPeople(-1);
 		}
