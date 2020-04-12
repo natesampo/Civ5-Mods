@@ -3046,7 +3046,8 @@ bool EconomicAIHelpers::IsTestStrategy_EarlyExpansion(CvPlayer* pPlayer)
 	int iFlavorExpansion = 0;
 	int iFlavorGrowth = 0;
 
-	if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}
@@ -3112,7 +3113,8 @@ bool EconomicAIHelpers::IsTestStrategy_EnoughExpansion(EconomicAIStrategyTypes e
 	int iBestArea;
 	int iSecondBestArea;
 
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return true;
 	}
@@ -3327,7 +3329,8 @@ bool EconomicAIHelpers::IsTestStrategy_FoundCity(EconomicAIStrategyTypes /*eStra
 	int iNumAreas;
 	int iArea = -1;
 
-	if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}
@@ -3752,7 +3755,8 @@ bool EconomicAIHelpers::IsTestStrategy_IslandStart(EconomicAIStrategyTypes eStra
 /// Are we running out of room on our current landmass?
 bool EconomicAIHelpers::IsTestStrategy_ExpandToOtherContinents(CvPlayer* pPlayer)
 {
-	if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}
@@ -3808,7 +3812,8 @@ bool EconomicAIHelpers::IsTestStrategy_ExpandToOtherContinents(CvPlayer* pPlayer
 /// Is there a lot more room on a known island other than our current landmass?
 bool EconomicAIHelpers::IsTestStrategy_ReallyExpandToOtherContinents(CvPlayer* pPlayer)
 {
-	if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}
@@ -3887,7 +3892,8 @@ bool EconomicAIHelpers::IsTestStrategy_MostlyOnTheCoast(CvPlayer* pPlayer)
 
 bool EconomicAIHelpers::IsTestStrategy_ExpandLikeCrazy(EconomicAIStrategyTypes eStrategy, CvPlayer* pPlayer)
 {
-	if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer->isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}

@@ -594,6 +594,11 @@ public:
 
 	// -- ints --
 
+	// NATEMOD - Resistance per population
+	inline int getRESISTANCE_PER_POPULATION_TIMES100()
+	{
+		return m_iRESISTANCE_PER_POPULATION_TIMES100;
+	}
 	inline int getAI_ATTEMPT_RUSH_OVER_X_TURNS_TO_BUILD()
 	{
 		return m_iAI_ATTEMPT_RUSH_OVER_X_TURNS_TO_BUILD;
@@ -7598,6 +7603,8 @@ protected:
 
 	// -- ints --
 
+	// NATEMOD - Resistance per population
+	int m_iRESISTANCE_PER_POPULATION_TIMES100;
 	int m_iAI_ATTEMPT_RUSH_OVER_X_TURNS_TO_BUILD;
 	int m_iINITIAL_AI_CITY_PRODUCTION;
 	int m_iAI_CAN_DISBAND_UNITS;

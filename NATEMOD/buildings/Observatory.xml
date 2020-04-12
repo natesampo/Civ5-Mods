@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+	<Building_YieldModifiers>
+		<Update>
+			<Set Yield="10" />
+			<Where BuildingType="BUILDING_OBSERVATORY" YieldType="YIELD_SCIENCE" />
+		</Update>
+	</Building_YieldModifiers>
+</GameData>

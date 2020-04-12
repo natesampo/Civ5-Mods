@@ -885,6 +885,12 @@ void CvCityStrategyAI::ChooseProduction(bool bUseAsyncRandom, BuildingTypes eIgn
 				}
 			}
 
+			// NATEMOD - Option to disable AI from building wonders
+			if (GC.getGame().isOption("GAMEOPTION_AI_CANNOT_BUILD_WORLD_WONDERS") && isWorldWonderClass(pkBuildingInfo->GetBuildingClassInfo()))
+			{
+				iTempWeight = 0;
+			}
+
 			// If the City is a puppet, it avoids Wonders (because the human can't change it if he wants to build it somewhere else!)
 			if(GetCity()->IsPuppet())
 			{
@@ -988,6 +994,10 @@ void CvCityStrategyAI::ChooseProduction(bool bUseAsyncRandom, BuildingTypes eIgn
 		{
 			if(m_pCity->canCreate((ProjectTypes)iProjectLoop))
 			{
+				// NATEMOD - Disabling AI from building wonders prevents them from building projects like World's Fair
+				if (GC.getGame().isOption("GAMEOPTION_AI_CANNOT_BUILD_WORLD_WONDERS") && isWorldProject((ProjectTypes)iProjectLoop))
+					continue;
+
 				buildable.m_eBuildableType = CITY_BUILDABLE_PROJECT;
 				buildable.m_iIndex = iProjectLoop;
 				buildable.m_iTurnsToConstruct = GetCity()->getProductionTurnsLeft((ProjectTypes)iProjectLoop, 0);

@@ -6169,13 +6169,19 @@ void CvLeague::DoProjectReward(PlayerTypes ePlayer, LeagueProjectTypes eLeaguePr
 		// Temporary Culture Modifier
 		if (pRewardInfo->GetCultureBonusTurns() > 0)
 		{
-			GET_PLAYER(ePlayer).ChangeCultureBonusTurns(pRewardInfo->GetCultureBonusTurns());
+			// NATEMOD - Change World's Fair duration to scale with game speed
+			int iNumTurns = pRewardInfo->GetCultureBonusTurns();
+			iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
+			GET_PLAYER(ePlayer).ChangeCultureBonusTurns(iNumTurns);
 		}
 
 		// Temporary Tourism Modifier
 		if (pRewardInfo->GetTourismBonusTurns() > 0)
 		{
-			GET_PLAYER(ePlayer).ChangeTourismBonusTurns(pRewardInfo->GetTourismBonusTurns());
+			// NATEMOD - Change International Games duration to scale with game speed
+			int iNumTurns = pRewardInfo->GetTourismBonusTurns();
+			iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
+			GET_PLAYER(ePlayer).ChangeTourismBonusTurns(iNumTurns);
 		}
 
 		// Golden Age Points
@@ -6657,6 +6663,9 @@ void CvGameLeagues::DoTurn()
 		// Not yet founded - is it time to start?
 		if (GetNumActiveLeagues() == 0)
 		{
+			// NATEMOD - If more than one player can found the League, randomize it instead of giving it to lowest slot
+			FStaticVector<PlayerTypes, MAX_MAJOR_CIVS, true> vePossibleFounders;
+
 			// Has any living major civ met every other living major civ?
 			for (int iCiv = 0; iCiv < MAX_MAJOR_CIVS; iCiv++)
 			{
@@ -6683,11 +6692,17 @@ void CvGameLeagues::DoTurn()
 
 						if (bMetEveryone && GC.getGame().countMajorCivsAlive() > 1)
 						{
-							FoundLeague(eCiv);
-							break;
+							// NATEMOD - If more than one player can found the League, randomize it instead of giving it to lowest slot
+							vePossibleFounders.push_back(eCiv);
 						}
 					}
 				}
+			}
+
+			// NATEMOD - If more than one player can found the League, randomize it instead of giving it to lowest slot
+			if (vePossibleFounders.size() > 0)
+			{
+				FoundLeague(vePossibleFounders.at(uint(GC.getGame().getJonRandNum(int(vePossibleFounders.size()), NULL))));
 			}
 		}
 		// Already founded - do we want to trigger a special session, or just a normal turn?

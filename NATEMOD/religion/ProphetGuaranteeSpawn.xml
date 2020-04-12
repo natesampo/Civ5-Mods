@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+	<Defines>
+		<Update>
+			<Set Value="100" />
+			<Where Name="RELIGION_BASE_CHANCE_PROPHET_SPAWN" />
+		</Update>
+	</Defines>
+</GameData>

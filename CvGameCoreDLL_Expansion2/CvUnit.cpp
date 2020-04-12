@@ -342,14 +342,16 @@ CvUnit::~CvUnit()
 
 
 //	--------------------------------------------------------------------------------
-void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /*= DEFAULT_UNIT_MAP_LAYER*/, int iNumGoodyHutsPopped)
+// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /*= DEFAULT_UNIT_MAP_LAYER*/, int iNumGoodyHutsPopped, bool bIsGifted)
 {
-	initWithNameOffset(iID, eUnit, -1, eUnitAI, eOwner, iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped);
+	initWithNameOffset(iID, eUnit, -1, eUnitAI, eOwner, iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped, bIsGifted);
 }
 
 // ---------------------------------------------------------------------------------
 //	--------------------------------------------------------------------------------
-void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer, int iNumGoodyHutsPopped)
+// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitAITypes eUnitAI, PlayerTypes eOwner, int iX, int iY, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer, int iNumGoodyHutsPopped, bool bIsGifted)
 {
 	VALIDATE_OBJECT
 	CvString strBuffer;
@@ -404,25 +406,29 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 	plot()->updateCenterUnit();
 
 	SetGreatWork(NO_GREAT_WORK);
-	iUnitName = GC.getGame().getUnitCreatedCount(getUnitType());
-	int iNumNames = getUnitInfo().GetNumUnitNames();
-	if(iUnitName < iNumNames)
+	// NATEMOD - If gifted a great person, use same name, don't rename the unit
+	if (!bIsGifted)
 	{
-		if(iNameOffset == -1)
+		iUnitName = GC.getGame().getUnitCreatedCount(getUnitType());
+		int iNumNames = getUnitInfo().GetNumUnitNames();
+		if(iUnitName < iNumNames)
 		{
-			iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection");
-		}
-	
-		for(iI = 0; iI < iNumNames; iI++)
-		{
-			int iIndex = (iNameOffset + iI) % iNumNames;
-			CvString strName = getUnitInfo().GetUnitNames(iIndex);
-			if(!GC.getGame().isGreatPersonBorn(strName))
+			if(iNameOffset == -1)
 			{
-				setName(strName);
-				SetGreatWork(getUnitInfo().GetGreatWorks(iIndex));
-				GC.getGame().addGreatPersonBornName(strName);
-				break;
+				iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection");
+			}
+		
+			for(iI = 0; iI < iNumNames; iI++)
+			{
+				int iIndex = (iNameOffset + iI) % iNumNames;
+				CvString strName = getUnitInfo().GetUnitNames(iIndex);
+				if(!GC.getGame().isGreatPersonBorn(strName))
+				{
+					setName(strName);
+					SetGreatWork(getUnitInfo().GetGreatWorks(iIndex));
+					GC.getGame().addGreatPersonBornName(strName);
+					break;
+				}
 			}
 		}
 	}
@@ -642,7 +648,8 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 	}
 
 	// Message for World Unit being born
-	if(isWorldUnitClass((UnitClassTypes)(getUnitInfo().GetUnitClassType())))
+	// If a wonder unit is gifted, don't display to everyone the message that it has been created again
+	if(!bIsGifted && isWorldUnitClass((UnitClassTypes)(getUnitInfo().GetUnitClassType())))
 	{
 		for(iI = 0; iI < MAX_PLAYERS; iI++)
 		{
@@ -679,7 +686,8 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 	kPlayer.UpdateUnitProductionMaintenanceMod();
 
 	// Minor Civ quest
-	if(!kPlayer.isMinorCiv() && !isBarbarian())
+	// NATEMOD - Require city state quest to be completed with born great people, not gifted great people
+	if (!bIsGifted && !kPlayer.isMinorCiv() && !isBarbarian())
 	{
 		PlayerTypes eMinor;
 		for(int iMinorCivLoop = MAX_MAJOR_CIVS; iMinorCivLoop < MAX_CIV_PLAYERS; iMinorCivLoop++)
@@ -1127,6 +1135,23 @@ void CvUnit::convert(CvUnit* pUnit, bool bIsUpgrade)
 	setFacingDirection(pUnit->getFacingDirection(false));
 	SetBeenPromotedFromGoody(pUnit->IsHasBeenPromotedFromGoody());
 	SetTourismBlastStrength(pUnit->GetTourismBlastStrength());
+	// NATEMOD - Maintain interceptions left, setup, already attacked, immobile, religion, spreads left, strength, bulb, and great work data for gifted units
+	SetResearchBulbAmount(pUnit->GetResearchBulbAmount());
+	SetGreatWork(pUnit->GetGreatWork());
+	m_iAttacksMade = pUnit->m_iAttacksMade;
+	m_iMadeInterceptionCount = pUnit->m_iMadeInterceptionCount;
+	setSetUpForRangedAttack(pUnit->isSetUpForRangedAttack());
+
+	if (pUnit->getOwner() != pUnit->GetOriginalOwner())
+	{
+		SetOriginalOwner(pUnit->GetOriginalOwner());
+	}
+
+	SetImmobile(pUnit->IsImmobile());
+
+	GetReligionData()->SetReligion(pUnit->GetReligionData()->GetReligion());
+	GetReligionData()->SetSpreadsLeft(pUnit->GetReligionData()->GetSpreadsLeft());
+	GetReligionData()->SetReligiousStrength(pUnit->GetReligionData()->GetReligiousStrength());
 
 	if (pUnit->getUnitInfo().GetNumExoticGoods() > 0)
 	{
@@ -3338,6 +3363,14 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) const
 			}
 		}
 	}
+	else 
+	{
+		// NATEMOD - Disallow major civs from gifting each other great people
+		if (IsGreatPerson())
+		{
+			return false;
+		}
+	}
 
 	// No for religious units
 	if (getUnitInfo().IsSpreadReligion() || getUnitInfo().IsRemoveHeresy())
@@ -3406,7 +3439,8 @@ void CvUnit::gift(bool bTestTransport)
 	}
 
 	CvAssertMsg(plot()->getOwner() != NO_PLAYER, "plot()->getOwner() is not expected to be equal with NO_PLAYER");
-	pGiftUnit = GET_PLAYER(plot()->getOwner()).initUnit(getUnitType(), getX(), getY(), AI_getUnitAIType(), NO_DIRECTION, false, false);
+	// NATEMOD - Keep properties of gifted units
+	pGiftUnit = GET_PLAYER(plot()->getOwner()).initUnit(getUnitType(), getX(), getY(), AI_getUnitAIType(), NO_DIRECTION, false, false, DEFAULT_UNIT_MAP_LAYER, 0, true);
 
 	CvAssertMsg(pGiftUnit != NULL, "GiftUnit is not assigned a valid value");
 
@@ -3417,9 +3451,7 @@ void CvUnit::gift(bool bTestTransport)
 		pGiftUnit->convert(this, false);
 		pGiftUnit->setupGraphical();
 
-		pGiftUnit->GetReligionData()->SetReligion(GetReligionData()->GetReligion());
-		pGiftUnit->GetReligionData()->SetReligiousStrength(GetReligionData()->GetReligiousStrength());
-		pGiftUnit->GetReligionData()->SetSpreadsLeft(GetReligionData()->GetSpreadsLeft());
+		// NATEMOD - Moved to earlier to maintain consistency
 
 		if(pGiftUnit->getOwner() == GC.getGame().getActivePlayer())
 		{
@@ -7791,7 +7823,8 @@ bool CvUnit::canBuyCityState(const CvPlot* pPlot, bool bTestVisible) const
 		return false;
 	}
 
-	if (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && GET_PLAYER(getOwner()).isHuman())
+	// NATEMOD - Added gameoption to disallow AI from building settlers
+	if ((GET_PLAYER(getOwner()).isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!GET_PLAYER(getOwner()).isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 	{
 		return false;
 	}
@@ -8452,15 +8485,9 @@ bool CvUnit::canBlastTourism(const CvPlot* pPlot, bool bTestVisible) const
 //	--------------------------------------------------------------------------------
 int CvUnit::getBlastTourism()
 {
-	if (!canBlastTourism(plot()))
-	{
-		return 0;
-	}
-
-	int iTourismBlast = GetTourismBlastStrength();
-	iTourismBlast = iTourismBlast * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
-
-	return iTourismBlast;
+	// NATEMOD - Fixed bug where tourism blasts were double penalized for game speed: once on unit creation and once when used
+	// NATEMOD - Also fixed bug where gifted musicians could have their blast yields removed entirely
+	return GetTourismBlastStrength();
 }
 
 //	--------------------------------------------------------------------------------
@@ -11592,7 +11619,8 @@ int CvUnit::maxXPValue() const
 
 	iMaxValue = INT_MAX;
 
-	if(isBarbarian())
+	// NATEMOD - Can no longer farm city states for generals, they use the barbarian max xp value
+	if(isBarbarian() || GET_PLAYER(this->getOwner()).isMinorCiv())
 	{
 		iMaxValue = std::min(iMaxValue, GC.getBARBARIAN_MAX_XP_VALUE());
 	}
@@ -14218,7 +14246,8 @@ void CvUnit::setExperience(int iNewValue, int iMax)
 
 
 //	--------------------------------------------------------------------------------
-void CvUnit::changeExperience(int iChange, int iMax, bool bFromCombat, bool bInBorders, bool bUpdateGlobal)
+// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+void CvUnit::changeExperience(int iChange, int iMax, bool bFromCombat, bool bInBorders, bool bUpdateGlobal, bool bEarnGreatPersonPoints)
 {
 	VALIDATE_OBJECT
 	// Barbs don't get XP or Promotions
@@ -14291,13 +14320,17 @@ void CvUnit::changeExperience(int iChange, int iMax, bool bFromCombat, bool bInB
 
 			if(iMax == -1)
 			{
-				if(getDomainType() == DOMAIN_SEA)
+				// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+				if (bEarnGreatPersonPoints)
 				{
-					kPlayer.changeNavalCombatExperience((iChange * iCombatExperienceMod) / 100);
-				}
-				else
-				{
-					kPlayer.changeCombatExperience((iChange * iCombatExperienceMod) / 100);
+					if(getDomainType() == DOMAIN_SEA)
+					{
+						kPlayer.changeNavalCombatExperience((iChange * iCombatExperienceMod) / 100);
+					}
+					else
+					{
+						kPlayer.changeCombatExperience((iChange * iCombatExperienceMod) / 100);
+					}
 				}
 			}
 			else
@@ -14305,13 +14338,17 @@ void CvUnit::changeExperience(int iChange, int iMax, bool bFromCombat, bool bInB
 				int iModdedChange = min(iMax - m_iExperience, iChange);
 				if(iModdedChange > 0)
 				{
-					if(getDomainType() == DOMAIN_SEA)
+					// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+					if (bEarnGreatPersonPoints)
 					{
-						kPlayer.changeNavalCombatExperience((iModdedChange * iCombatExperienceMod) / 100);
-					}
-					else
-					{
-						kPlayer.changeCombatExperience((iModdedChange * iCombatExperienceMod) / 100);
+						if(getDomainType() == DOMAIN_SEA)
+						{
+							kPlayer.changeNavalCombatExperience((iModdedChange * iCombatExperienceMod) / 100);
+						}
+						else
+						{
+							kPlayer.changeCombatExperience((iModdedChange * iCombatExperienceMod) / 100);
+						}
 					}
 				}
 			}

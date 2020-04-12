@@ -2617,7 +2617,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 			pNewCity->SetOccupied(true);
 
 			int iInfluenceReduction = GetCulture()->GetInfluenceCityConquestReduction(eOldOwner);
-			int iResistanceTurns = pNewCity->getPopulation() * (100 - iInfluenceReduction) / 100;
+			// NATEMOD - Scale resistance based on game speed and a new global that represents resistance per population times 100
+			int iResistanceTurns = pNewCity->getPopulation() * GC.getRESISTANCE_PER_POPULATION_TIMES100() * GC.getGame().getGameSpeedInfo().getVictoryDelayPercent();
+			iResistanceTurns *= (100 - iInfluenceReduction); // take tourism into account
+			if (iResistanceTurns % 1000000 != 0)
+				iResistanceTurns += 1000000;
+			iResistanceTurns /= 1000000;
 
 			if (iResistanceTurns > 0)
 			{
@@ -3234,7 +3239,8 @@ bool CvPlayer::CanLiberatePlayerCity(PlayerTypes ePlayer)
 }
 
 //	--------------------------------------------------------------------------------
-CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /* = 0 */, int iNumGoodyHutsPopped)
+// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /* = 0 */, int iNumGoodyHutsPopped, bool bIsGifted)
 {
 	CvAssertMsg(eUnit != NO_UNIT, "Unit is not assigned a valid value");
 	if (eUnit == NO_UNIT)
@@ -3249,7 +3255,8 @@ CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI,
 	CvAssertMsg(pUnit != NULL, "Unit is not assigned a valid value");
 	if(NULL != pUnit)
 	{
-		pUnit->init(pUnit->GetID(), eUnit, ((eUnitAI == NO_UNITAI) ? ((UnitAITypes)(pkUnitDef->GetDefaultUnitAIType())) : eUnitAI), GetID(), iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped);
+		// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+		pUnit->init(pUnit->GetID(), eUnit, ((eUnitAI == NO_UNITAI) ? ((UnitAITypes)(pkUnitDef->GetDefaultUnitAIType())) : eUnitAI), GetID(), iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped, bIsGifted);
 
 		// slewis - added for the tutorial
 		if(pUnit->getUnitInfo().GetWorkRate() > 0 && pUnit->getUnitInfo().GetDomainType() == DOMAIN_LAND)
@@ -3264,7 +3271,8 @@ CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI,
 	return pUnit;
 }
 
-CvUnit* CvPlayer::initUnitWithNameOffset(UnitTypes eUnit, int nameOffset, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /* = 0 */, int iNumGoodyHutsPopped)
+// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+CvUnit* CvPlayer::initUnitWithNameOffset(UnitTypes eUnit, int nameOffset, int iX, int iY, UnitAITypes eUnitAI, DirectionTypes eFacingDirection, bool bNoMove, bool bSetupGraphical, int iMapLayer /* = 0 */, int iNumGoodyHutsPopped, bool bIsGifted)
 {
 	CvAssertMsg(eUnit != NO_UNIT, "Unit is not assigned a valid value");
 	if (eUnit == NO_UNIT)
@@ -3279,7 +3287,8 @@ CvUnit* CvPlayer::initUnitWithNameOffset(UnitTypes eUnit, int nameOffset, int iX
 	CvAssertMsg(pUnit != NULL, "Unit is not assigned a valid value");
 	if(NULL != pUnit)
 	{
-		pUnit->initWithNameOffset(pUnit->GetID(), eUnit, nameOffset, ((eUnitAI == NO_UNITAI) ? ((UnitAITypes)(pkUnitDef->GetDefaultUnitAIType())) : eUnitAI), GetID(), iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped);
+		// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+		pUnit->initWithNameOffset(pUnit->GetID(), eUnit, nameOffset, ((eUnitAI == NO_UNITAI) ? ((UnitAITypes)(pkUnitDef->GetDefaultUnitAIType())) : eUnitAI), GetID(), iX, iY, eFacingDirection, bNoMove, bSetupGraphical, iMapLayer, iNumGoodyHutsPopped, bIsGifted);
 
 		// slewis - added for the tutorial
 		if(pUnit->getUnitInfo().GetWorkRate() > 0 && pUnit->getUnitInfo().GetDomainType() == DOMAIN_LAND)
@@ -4484,7 +4493,12 @@ void CvPlayer::DoUnitReset()
 		pLoopUnit->setMoves(pLoopUnit->maxMoves());
 		if(pLoopUnit->IsGreatGeneral())
 		{
-			pLoopUnit->setMoves(pLoopUnit->GetGreatGeneralStackMovement());
+			// NATEMOD - If a unit is changed great general movement points, make sure it isn't actually slowing down the great general (Hakkapeliitta)
+			int newValue = pLoopUnit->GetGreatGeneralStackMovement();
+			if (newValue > pLoopUnit->maxMoves())
+			{
+				pLoopUnit->setMoves(newValue);
+			}
 		}
 
 		// Archaeologist can't move on turn he finishes a dig (while waiting for user to decide his next action)
@@ -5935,7 +5949,8 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	{
 		GetTreasury()->ChangeGold(iGold);
 
-		strBuffer += GetLocalizedText("TXT_KEY_MISC_RECEIVED_GOLD", iGold);
+		// NATEMOD - Fixed displaying the gold ruin message
+		strBuffer += GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iGold);
 
 		// NATEMOD - Display yield from ruins if got gold
 		ReportYieldFromKill(YIELD_GOLD, iGold, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -5979,6 +5994,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 
 		changeJONSCulture(iCulture);
 
+		// NATEMOD - Display the culture ruin message
+		strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iCulture);
+
 		// NATEMOD - Display yield from ruins if got culture
 		ReportYieldFromKill(YIELD_CULTURE, iCulture, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
 		iNumYieldBonuses += 1;
@@ -5993,6 +6011,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith /= 100;
 
 		ChangeFaith(iFaith);
+
+		// NATEMOD - Display the faith ruin message
+		strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iFaith);
 
 		// NATEMOD - Display yield from ruins if got faith
 		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -6010,6 +6031,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith *= iDivisor;
 		ChangeFaith(iFaith);
 
+		// NATEMOD - Display the faith ruin message
+		strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iFaith);
+
 		// NATEMOD - Display yield from ruins if got faith
 		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
 		iNumYieldBonuses += 1;
@@ -6024,6 +6048,9 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		iFaith /= iDivisor;
 		iFaith *= iDivisor;
 		ChangeFaith(iFaith);
+
+		// NATEMOD - Display the faith ruin message
+		strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iFaith);
 
 		// NATEMOD - Display yield from ruins if got faith
 		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -6822,7 +6849,8 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	// One City Challenge
 	if(pUnitInfo.IsFound() || pUnitInfo.IsFoundAbroad())
 	{
-		if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
+		// NATEMOD - Added gameoption to disallow AI from building settlers
+		if ((isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 		{
 			return false;
 		}
@@ -11168,7 +11196,8 @@ int CvPlayer::GetHappinessFromLuxury(ResourceTypes eResource) const
 		// Any extras?
 		else if(getNumResourceAvailable(eResource, /*bIncludeImport*/ true) > 0)
 		{
-			return iBaseHappiness;
+			// NATEMOD - Now allows for UAs to give extra happiness for luxury resources
+			return iBaseHappiness + GetPlayerTraits()->GetExtraHappinessPerLuxury();
 		}
 
 		else if(GetPlayerTraits()->GetLuxuryHappinessRetention() > 0)
@@ -16933,7 +16962,8 @@ int CvPlayer::GetScienceYieldFromPreviousTurns(int iGameTurn, int iNumPreviousTu
 		}
 		else if (iTurnScience == -1) // No data for this turn (ex. late era start)
 		{
-			iSum += (3 * GetScience());
+			// NATEMOD - If no data for previous turns, just use this turn's science
+			iSum += GetScience();
 		}
 	}
 
@@ -18599,8 +18629,9 @@ int CvPlayer::GetHurryGoldCost(HurryTypes eHurry) const
 
 		if(eTech != NO_TECH)
 		{
-			int iTotalCost = GET_TEAM(getTeam()).GetTeamTechs()->GetResearchCost(eTech);
-			int iResearchLeft = GET_TEAM(getTeam()).GetTeamTechs()->GetResearchLeft(eTech);
+			// NATEMOD - Fixing bug where tech modifiers were sometimes only visual
+			int iTotalCost = GetPlayerTechs()->GetResearchCost(eTech);
+			int iResearchLeft = MAX(0, (iTotalCost - GET_TEAM(getTeam()).GetTeamTechs()->GetResearchProgress(eTech)));
 
 			// Cost of Gold rushing based on the ORIGINAL Research price
 			int iGoldForFullPrice = iTotalCost * pkHurryInfo->getGoldPerBeaker();
@@ -18887,7 +18918,8 @@ int CvPlayer::findPathLength(TechTypes eTech, bool bCost) const
 		iPathLength += iShortestPath;
 	}
 
-	return (iPathLength + ((bCost) ? GET_TEAM(getTeam()).GetTeamTechs()->GetResearchCost(eTech) : 1));
+	// NATEMOD - Fixing a bug where sometimes tech cost changes were only visual
+	return (iPathLength + ((bCost) ? GetPlayerTechs()->GetResearchCost(eTech) : 1));
 }
 
 
@@ -19692,7 +19724,8 @@ void CvPlayer::doResearch()
 		}
 		else
 		{
-			iOverflowResearch = (getOverflowResearchTimes100() * calculateResearchModifier(eCurrentTech)) / 100;
+			// NATEMOD - Fixed bug where science overflow was being amplified by research modifiers
+			iOverflowResearch = getOverflowResearchTimes100();
 			setOverflowResearch(0);
 			if(GET_TEAM(getTeam()).GetTeamTechs())
 			{
@@ -20813,7 +20846,8 @@ int CvPlayer::getAdvancedStartTechCost(TechTypes eTech, bool bAdd)
 		return -1;
 	}
 
-	int iCost = (GET_TEAM(getTeam()).GetTeamTechs()->GetResearchCost(eTech) * GC.getTechInfo(eTech)->GetAdvancedStartCost()) / 100;
+	// NATEMOD - Fixing an issue where sometimes tech cost changes were only visual
+	int iCost = (GetPlayerTechs()->GetResearchCost(eTech) * GC.getTechInfo(eTech)->GetAdvancedStartCost()) / 100;
 	if(iCost < 0)
 	{
 		return -1;

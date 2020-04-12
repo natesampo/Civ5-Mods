@@ -1741,7 +1741,8 @@ bool CvBeliefHelpers::ConvertBarbarianUnit(CvPlayer *pPlayer, UnitHandle pUnit)
 	CvPlot *pPlot = pUnit->plot();
 
 	// Convert the barbarian into our unit
-	pNewUnit = pPlayer->initUnit(pUnit->getUnitType(), pUnit->getX(), pUnit->getY(), pUnit->AI_getUnitAIType(), NO_DIRECTION, true /*bNoMove*/, false);
+	// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+	pNewUnit = pPlayer->initUnit(pUnit->getUnitType(), pUnit->getX(), pUnit->getY(), pUnit->AI_getUnitAIType(), NO_DIRECTION, true /*bNoMove*/, false, DEFAULT_UNIT_MAP_LAYER, 0, true);
 	CvAssertMsg(pNewUnit, "pNewUnit is not assigned a valid value");
 	pNewUnit->convert(pUnit.pointer(), false);
 	pNewUnit->setupGraphical();

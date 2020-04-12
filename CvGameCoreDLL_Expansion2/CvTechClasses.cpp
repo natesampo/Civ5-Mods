@@ -1951,14 +1951,8 @@ void CvTeamTechs::SetResearchProgressTimes100(TechTypes eIndex, int iNewValue, P
 		}
 
 		int iResearchProgress = GetResearchProgressTimes100(eIndex);
-		int iResearchCost = GetResearchCost(eIndex) * 100;
-
-		// Player modifiers to cost
-		int iResearchMod = std::max(1, GET_PLAYER(ePlayer).calculateResearchModifier(eIndex));
-		iResearchCost = (iResearchCost * 100) / iResearchMod;
-		int iNumCitiesMod = GC.getMap().getWorldInfo().GetNumCitiesTechCostMod();	// Default is 40, gets smaller on larger maps
-		iNumCitiesMod = iNumCitiesMod * GET_PLAYER(ePlayer).GetMaxEffectiveCities(/*bIncludePuppets*/ true);
-		iResearchCost = iResearchCost * (100 + iNumCitiesMod) / 100;
+		// NATEMOD - Fixing bug where sometimes tech cost changes are only visual
+		int iResearchCost = GET_PLAYER(ePlayer).GetPlayerTechs()->GetResearchCost(eIndex) * 100;
 		
 		int iOverflow = iResearchProgress - iResearchCost;
 
@@ -2096,11 +2090,13 @@ int CvTeamTechs::ChangeResearchProgressPercent(TechTypes eIndex, int iPercent, P
 	{
 		if(iPercent > 0)
 		{
-			iBeakers = std::min(GetResearchLeft(eIndex), (GetResearchCost(eIndex) * iPercent) / 100);
+			// NATEMOD - Fixing issue where sometimes changes to tech cost were only visual
+			iBeakers = std::min(GetResearchLeft(eIndex), (GET_PLAYER(ePlayer).GetPlayerTechs()->GetResearchCost(eIndex) * iPercent) / 100);
 		}
 		else
 		{
-			iBeakers = std::max(GetResearchLeft(eIndex) - GetResearchCost(eIndex), (GetResearchCost(eIndex) * iPercent) / 100);
+			// NATEMOD - Fixing issue where sometimes changes to tech cost were only visual
+			iBeakers = std::min(GetResearchLeft(eIndex) - GET_PLAYER(ePlayer).GetPlayerTechs()->GetResearchCost(eIndex), (GET_PLAYER(ePlayer).GetPlayerTechs()->GetResearchCost(eIndex) * iPercent) / 100);
 		}
 
 		ChangeResearchProgress(eIndex, iBeakers, ePlayer);

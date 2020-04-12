@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created by ModBuddy on 6/12/2015 3:35:42 AM -->
+<GameData>
+
+	<!-- Entrepreneurship -->
+	<Policy_BuildingClassYieldChanges>
+		<Update>
+			<Set YieldChange="2" />
+			<Where PolicyType="POLICY_ENTREPRENEURSHIP" BuildingClassType="BUILDINGCLASS_MINT" YieldType="YIELD_SCIENCE" />
+		</Update>
+		<Update>
+			<Set YieldChange="2" />
+			<Where PolicyType="POLICY_ENTREPRENEURSHIP" BuildingClassType="BUILDINGCLASS_MARKET" YieldType="YIELD_SCIENCE" />
+		</Update>
+		<Update>
+			<Set YieldChange="2" />
+			<Where PolicyType="POLICY_ENTREPRENEURSHIP" BuildingClassType="BUILDINGCLASS_BANK" YieldType="YIELD_SCIENCE" />
+		</Update>
+		<Update>
+			<Set YieldChange="2" />
+			<Where PolicyType="POLICY_ENTREPRENEURSHIP" BuildingClassType="BUILDINGCLASS_STOCK_EXCHANGE" YieldType="YIELD_SCIENCE" />
+		</Update>
+	</Policy_BuildingClassYieldChanges>
+	<Policies>
+		<Update>
+			<Set TradeMissionGoldModifier="0" GreatMerchantRateModifier="25" RouteGoldMaintenanceMod="-50" BuildingGoldMaintenanceMod="-25" />
+			<Where Type="POLICY_ENTREPRENEURSHIP" />
+		</Update>
+	</Policies>
+	<Language_en_US>
+		<Delete Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP" />
+		<Row Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP">
+			<Text>[COLOR_POSITIVE_TEXT]Entrepreneurship[ENDCOLOR][NEWLINE]Generate Great Merchants 25% faster. Maintenance paid on Roads and Railroads reduced by 50%. Maintenance paid on Buildings reduced by 25%. Markets, Mints, Banks, and Stock Exchanges yield +2 [ICON_RESEARCH] Science</Text>
+		</Row>
+	</Language_en_US>
+	<Language_DE_DE>
+		<Delete Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP" />
+		<Row Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP">
+			<Text>[COLOR_WARNING_TEXT](DE_DE text) [ENDCOLOR][COLOR_POSITIVE_TEXT]Entrepreneurship[ENDCOLOR][NEWLINE]Generate Great Merchants 25% faster. Maintenance paid on Roads and Railroads reduced by 50%. Maintenance paid on Buildings reduced by 25%. Markets, Mints, Banks, and Stock Exchanges yield +2 [ICON_RESEARCH] Science</Text>
+		</Row>
+	</Language_DE_DE>
+	<Language_PL_PL>
+		<Delete Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP" />
+		<Row Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP">
+			<Text>[COLOR_WARNING_TEXT](PL_PL text) [ENDCOLOR][COLOR_POSITIVE_TEXT]Entrepreneurship[ENDCOLOR][NEWLINE]Generate Great Merchants 25% faster. Maintenance paid on Roads and Railroads reduced by 50%. Maintenance paid on Buildings reduced by 25%. Markets, Mints, Banks, and Stock Exchanges yield +2 [ICON_RESEARCH] Science</Text>
+		</Row>
+	</Language_PL_PL>
+	<Language_RU_RU>
+		<Delete Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP" />
+		<Row Tag="TXT_KEY_POLICY_ENTREPRENEURSHIP_HELP">
+			<Text>[COLOR_WARNING_TEXT](RU_RU text) [ENDCOLOR][COLOR_POSITIVE_TEXT]Entrepreneurship[ENDCOLOR][NEWLINE]Generate Great Merchants 25% faster. Maintenance paid on Roads and Railroads reduced by 50%. Maintenance paid on Buildings reduced by 25%. Markets, Mints, Banks, and Stock Exchanges yield +2 [ICON_RESEARCH] Science</Text>
+		</Row>
+	</Language_RU_RU>
+</GameData>

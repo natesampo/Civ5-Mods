@@ -105,6 +105,7 @@ public:
 	int GetRazeSpeedModifier() const;
 	int GetDOFGreatPersonModifier() const;
 	int GetLuxuryHappinessRetention() const;
+	int GetExtraHappinessPerLuxury() const; // NATEMOD - UA extra happiness for luxuries
 	int GetExtraSpies() const;
 	int GetUnresearchedTechBonusFromKills() const;
 	int GetExtraFoundedCityTerritoryClaimRange() const;
@@ -158,6 +159,7 @@ public:
 	int GetExtraYieldThreshold(int i) const;
 	int GetYieldChange(int i) const;
 	int GetYieldChangeStrategicResources(int i) const;
+	int GetYieldChangeLuxuryResources(int i) const; // NATEMOD - UA extra yield from luxuries
 	int GetYieldChangeNaturalWonder(int i) const;
 	int GetYieldChangePerTradePartner(int i) const;
 	int GetYieldChangeIncomingTradeRoute(int i) const;
@@ -236,6 +238,7 @@ protected:
 	int m_iRazeSpeedModifier;
 	int m_iDOFGreatPersonModifier;
 	int m_iLuxuryHappinessRetention;
+	int m_iExtraHappinessPerLuxury; // NATEMOD - UA extra happiness for luxuries
 	int m_iExtraSpies;
 	int m_iUnresearchedTechBonusFromKills;
 	int m_iExtraFoundedCityTerritoryClaimRange;
@@ -285,6 +288,7 @@ protected:
 	int* m_paiExtraYieldThreshold;
 	int* m_paiYieldChange;
 	int* m_paiYieldChangeStrategicResources;
+	int* m_paiYieldChangeLuxuryResources; // NATEMOD - UA extra yield for luxuries
 	int* m_paiYieldChangeNaturalWonder;
 	int* m_paiYieldChangePerTradePartner;
 	int* m_paiYieldChangeIncomingTradeRoute;
@@ -567,6 +571,11 @@ public:
 	{
 		return m_iLuxuryHappinessRetention;
 	};
+	// NATEMOD - UA extra happiness for luxuries
+	int GetExtraHappinessPerLuxury() const
+	{
+		return m_iExtraHappinessPerLuxury;
+	};
 	int GetExtraSpies() const
 	{
 		return m_iExtraSpies;
@@ -744,6 +753,11 @@ public:
 	{
 		return m_iYieldChangeStrategicResources[(int)eYield];
 	};
+	// NATEMOD - UA extra yield from luxuries
+	int GetYieldChangeLuxuryResources(YieldTypes eYield) const
+	{
+		return m_iYieldChangeLuxuryResources[(int)eYield];
+	};
 	int GetYieldChangeNaturalWonder(YieldTypes eYield) const
 	{
 		return m_iYieldChangeNaturalWonder[(int)eYield];
@@ -877,6 +891,7 @@ private:
 	int m_iRazeSpeedModifier;
 	int m_iDOFGreatPersonModifier;
 	int m_iLuxuryHappinessRetention;
+	int m_iExtraHappinessPerLuxury; // NATEMOD - UA extra happiness from luxuries
 	int m_iExtraSpies;
 	int m_iUnresearchedTechBonusFromKills;
 	int m_iExtraFoundedCityTerritoryClaimRange;
@@ -927,6 +942,7 @@ private:
 	int m_iExtraYieldThreshold[NUM_YIELD_TYPES];
 	int m_iFreeCityYield[NUM_YIELD_TYPES];
 	int m_iYieldChangeStrategicResources[NUM_YIELD_TYPES];
+	int m_iYieldChangeLuxuryResources[NUM_YIELD_TYPES]; // NATEMOD - UA extra yield from luxuries
 	int m_iYieldChangeNaturalWonder[NUM_YIELD_TYPES];
 	int m_iYieldChangePerTradePartner[NUM_YIELD_TYPES];
 	int m_iYieldChangeIncomingTradeRoute[NUM_YIELD_TYPES];

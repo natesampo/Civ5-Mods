@@ -136,14 +136,21 @@ void CvUnitCombat::GenerateMeleeCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender
 
 		int iExperience = /*5*/ GC.getEXPERIENCE_ATTACKING_CITY_MELEE();
 		pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, iExperience);
-		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, MAX_INT);
+		// NATEMOD - Cap city state experience to max barbarian value when shooting the city itself
+		int iMaxExperience = (GET_PLAYER(pkCity->getOwner()).isMinorCiv()) ? GC.getBARBARIAN_MAX_XP_VALUE() : MAX_INT;
+		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, iMaxExperience);
 		pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == pkCity->getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && !pkCity->isBarbarian() && !GET_PLAYER(pkCity->getOwner()).isMinorCiv();
+
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 		pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, 0);
 		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, kAttacker.maxXPValue());
 		pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == kAttacker.getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !pkCity->isBarbarian());
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 
 		pkCombatInfo->setAttackIsRanged(false);
 		pkCombatInfo->setDefenderRetaliates(true);
@@ -225,7 +232,10 @@ void CvUnitCombat::GenerateMeleeCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender
 		pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, iExperience);
 		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, kAttacker.maxXPValue());
 		pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == pkDefender->getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !kAttacker.isBarbarian());
+
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && !pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 
 		//iExperience = ((iExperience * iDefenderEffectiveStrength) / iAttackerEffectiveStrength);
 		//iExperience = range(iExperience, GC.getMIN_EXPERIENCE_PER_COMBAT(), GC.getMAX_EXPERIENCE_PER_COMBAT());
@@ -233,7 +243,8 @@ void CvUnitCombat::GenerateMeleeCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender
 		pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, iExperience);
 		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, pkDefender->maxXPValue());
 		pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == kAttacker.getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !pkDefender->isBarbarian());
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 		pkCombatInfo->setAttackIsRanged(false);
 
@@ -305,20 +316,28 @@ void CvUnitCombat::ResolveMeleeCombat(const CvCombatInfo& kCombatInfo, uint uiPa
 		pkDefender->changeDamage(iAttackerDamageInflicted, pkAttacker->getOwner());
 		iAttackerDamageDelta = pkAttacker->changeDamage(iDefenderDamageInflicted, pkDefender->getOwner(), -1.f);		// Signal that we don't want the popup text.  It will be added later when the unit is at its final location
 
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bool bIsCSOrBarb = pkAttacker->isBarbarian() || GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 		// Update experience for both sides.
 		pkDefender->changeExperience(
 		    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
 		    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
 		    true,
 		    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-		    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+		    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER),
+			!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bIsCSOrBarb = pkDefender->isBarbarian() || GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
 
 		pkAttacker->changeExperience(
 		    kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER),
 		    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
 		    true,
 		    kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
-		    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+		    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER),
+			!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs);
 
 		// Anyone eat it?
 		bAttackerDead = (pkAttacker->getDamage() >= GC.getMAX_HIT_POINTS());
@@ -563,7 +582,8 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvUnit& kAttacker, CvUnit* pkDefende
 		iExperience = /*3*/ GC.getEXPERIENCE_ATTACKING_CITY_RANGED();
 		if(pCity->isBarbarian())
 			bBarbarian = true;
-		iMaxXP = 1000;
+		// NATEMOD - Cap city state experience to be barbarian experience
+		iMaxXP = (GET_PLAYER(pCity->getOwner()).isMinorCiv()) ? GC.getBARBARIAN_MAX_XP_VALUE() : 1000;
 
 		iDamage = kAttacker.GetRangeCombatDamage(/*pDefender*/ NULL, pCity, /*bIncludeRand*/ true);
 
@@ -589,13 +609,16 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvUnit& kAttacker, CvUnit* pkDefende
 	pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, iExperience);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, iMaxXP);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == eDefenderOwner);
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && (plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) && (!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 	iExperience = /*2*/ GC.getEXPERIENCE_DEFENDING_UNIT_RANGED();
 	pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, iExperience);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, kAttacker.maxXPValue());
 	pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == kAttacker.getOwner());
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !bBarbarian && !kAttacker.isBarbarian());
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 
 	pkCombatInfo->setAttackIsRanged(true);
 	// Defender doesn't retaliate.  We'll keep this separate from the ranged attack flag in case something changes to allow
@@ -667,13 +690,16 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvCity& kAttacker, CvUnit* pkDefende
 	pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, 0);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, 0);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == eDefenderOwner);
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && !pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 	int iExperience = /*2*/ GC.getEXPERIENCE_DEFENDING_UNIT_RANGED();
 	pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, iExperience);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, MAX_INT);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == kAttacker.getOwner());
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !bBarbarian && !kAttacker.isBarbarian());
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 
 	pkCombatInfo->setAttackIsRanged(true);
 	// Defender doesn't retaliate.  We'll keep this separate from the ranged attack flag in case something changes to allow
@@ -695,6 +721,8 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 //	int iExperience = kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER);
 //	int iMaxXP = kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER);
 	bool bBarbarian = false;
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsCSOrBarb = false;
 
 	CvUnit* pkAttacker = kCombatInfo.getUnit(BATTLE_UNIT_ATTACKER);
 	CvAssert_Debug(pkAttacker);
@@ -775,13 +803,17 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 					//set damage but don't update entity damage visibility
 					pkDefender->changeDamage(iDamage, pkAttacker->getOwner());
 
+					// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+					bIsCSOrBarb = pkAttacker->isBarbarian() || GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 					// Update experience
 					pkDefender->changeExperience(
 					    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
 					    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
 					    true,
 					    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER),
+						!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 				}
 
 				pkDefender->setCombatUnit(NULL);
@@ -825,12 +857,36 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 		// Unit gains XP for executing a Range Strike
 		if(iDamage > 0) // && iDefenderStrength > 0)
 		{
+			// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+			bIsCSOrBarb = true;
+			if(!pkTargetPlot->isCity())
+			{
+				// Unit
+				CvUnit* pkDefender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
+				CvAssert_Debug(pkDefender != NULL);
+				if(pkDefender)
+				{
+					bIsCSOrBarb = pkDefender->isBarbarian() || GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
+				}
+			}
+			else
+			{
+				// City
+				CvCity* pCity = pkTargetPlot->getPlotCity();
+				CvAssert_Debug(pCity != NULL);
+				if(pCity)
+				{
+					bIsCSOrBarb = GET_PLAYER(pCity->getOwner()).isMinorCiv();
+				}
+			}
+
 			pkAttacker->changeExperience(
 			    kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER),
 			    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
 			    true,
 			    kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
-			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER),
+				!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 		}
 
 		pkAttacker->testPromotionReady();
@@ -852,6 +908,8 @@ void CvUnitCombat::ResolveRangedCityVsUnitCombat(const CvCombatInfo& kCombatInfo
 	bool bTargetDied = false;
 	int iDamage = kCombatInfo.getDamageInflicted(BATTLE_UNIT_ATTACKER);
 	bool bBarbarian = false;
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsCSOrBarb = false;
 
 	CvCity* pkAttacker = kCombatInfo.getCity(BATTLE_UNIT_ATTACKER);
 	CvAssert_Debug(pkAttacker);
@@ -913,13 +971,17 @@ void CvUnitCombat::ResolveRangedCityVsUnitCombat(const CvCombatInfo& kCombatInfo
 					//set damage but don't update entity damage visibility
 					pkDefender->changeDamage(iDamage, pkAttacker->getOwner());
 
+					// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+					bIsCSOrBarb = GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 					// Update experience
 					pkDefender->changeExperience(
 					    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
 					    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
 					    true,
 					    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER),
+						!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 				}
 
 				pkDefender->setCombatUnit(NULL);
@@ -968,6 +1030,9 @@ void CvUnitCombat::ResolveCityMeleeCombat(const CvCombatInfo& kCombatInfo, uint 
 
 	if(pkAttacker && pkDefender)
 	{
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bool bIsCSOrBarb = GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
+
 		pkAttacker->changeDamage(iDefenderDamageInflicted, pkDefender->getOwner());
 		pkDefender->changeDamage(iAttackerDamageInflicted);
 
@@ -975,7 +1040,8 @@ void CvUnitCombat::ResolveCityMeleeCombat(const CvCombatInfo& kCombatInfo, uint 
 		                             kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
 		                             true,
 		                             false,
-		                             kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+		                             kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER),
+									  !bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 	}
 
 	bool bCityConquered = false;
@@ -1253,13 +1319,16 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, iExperience);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, iMaxXP);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == eDefenderOwner);
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && (plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) && (!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 	iExperience = /*2*/ GC.getEXPERIENCE_DEFENDING_UNIT_AIR();
 	pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, iExperience);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, MAX_INT);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == kAttacker.getOwner());
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !bBarbarian);
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 
 	if (iInterceptionDamage > 0)
 	{
@@ -1267,7 +1336,8 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 		pkCombatInfo->setExperience( BATTLE_UNIT_INTERCEPTOR, iExperience );
 		pkCombatInfo->setMaxExperienceAllowed( BATTLE_UNIT_INTERCEPTOR, MAX_INT );
 		pkCombatInfo->setInBorders( BATTLE_UNIT_INTERCEPTOR, plot.getOwner() == kAttacker.getOwner() );
-		pkCombatInfo->setUpdateGlobal( BATTLE_UNIT_INTERCEPTOR, !bBarbarian );
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_INTERCEPTOR, bIsGlobalXPAwarded);
 	}
 
 	pkCombatInfo->setAttackIsBombingMission(true);
@@ -1286,6 +1356,8 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 	bool bTargetDied = false;
 	int iAttackerDamageInflicted = kCombatInfo.getDamageInflicted(BATTLE_UNIT_ATTACKER);
 	int iDefenderDamageInflicted = kCombatInfo.getDamageInflicted(BATTLE_UNIT_DEFENDER);
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsCSOrBarb = false;
 
 	CvUnit* pkAttacker = kCombatInfo.getUnit(BATTLE_UNIT_ATTACKER);
 
@@ -1303,12 +1375,17 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 	{
 		pInterceptor->setMadeInterception(true);
 		pInterceptor->setCombatUnit(NULL);
+
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		bIsCSOrBarb = pkAttacker->isBarbarian() || GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 		pInterceptor->changeExperience(
 			kCombatInfo.getExperience(BATTLE_UNIT_INTERCEPTOR),
 			kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_INTERCEPTOR),
 			true,
 			kCombatInfo.getInBorders(BATTLE_UNIT_INTERCEPTOR),
-			kCombatInfo.getUpdateGlobal(BATTLE_UNIT_INTERCEPTOR));
+			kCombatInfo.getUpdateGlobal(BATTLE_UNIT_INTERCEPTOR),
+			!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 	}
 
 	CvPlot* pkTargetPlot = kCombatInfo.getPlot();
@@ -1339,13 +1416,17 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 					pkAttacker->changeDamage(iDefenderDamageInflicted, pkDefender->getOwner());
 					pkDefender->changeDamage(iAttackerDamageInflicted, pkAttacker->getOwner());
 
+					// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+					bIsCSOrBarb = pkAttacker->isBarbarian() || GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 					// Update experience
 					pkDefender->changeExperience(
 					    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
 					    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
 					    true,
 					    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER),
+						!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 
 					// Attacker died
 					if(pkAttacker->IsDead())
@@ -1496,7 +1577,8 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 				                             kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
 				                             true,
 				                             kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
-				                             kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+				                             kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER),
+											 false); // NATEMOD - Suicide units do not gain great general points
 
 				// Promotion time?
 				pkAttacker->testPromotionReady();
@@ -1543,6 +1625,9 @@ void CvUnitCombat::GenerateAirSweepCombatInfo(CvUnit& kAttacker, CvUnit* pkDefen
 	int iDefenderStrength = 0;
 
 	int iDefenderExperience = 0;
+
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && !pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
 
 	// Ground AA interceptor
 	if(pkDefender->getDomainType() != DOMAIN_AIR)
@@ -1608,7 +1693,8 @@ void CvUnitCombat::GenerateAirSweepCombatInfo(CvUnit& kAttacker, CvUnit* pkDefen
 		pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, iDefenderExperience);
 		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, pkDefender->maxXPValue());
 		pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == pkDefender->getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
 
 		//iExperience = ((iExperience * iDefenderEffectiveStrength) / iAttackerEffectiveStrength);
 		//iExperience = range(iExperience, GC.getMIN_EXPERIENCE_PER_COMBAT(), GC.getMAX_EXPERIENCE_PER_COMBAT());
@@ -1616,7 +1702,8 @@ void CvUnitCombat::GenerateAirSweepCombatInfo(CvUnit& kAttacker, CvUnit* pkDefen
 		pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, iExperience);
 		pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, kAttacker.maxXPValue());
 		pkCombatInfo->setInBorders(BATTLE_UNIT_DEFENDER, plot.getOwner() == kAttacker.getOwner());
-		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, !pkDefender->isBarbarian());
+		// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_DEFENDER, bIsGlobalXPAwarded);
 	}
 
 	pkCombatInfo->setAttackIsRanged(false);
@@ -1634,6 +1721,8 @@ void CvUnitCombat::ResolveAirSweep(const CvCombatInfo& kCombatInfo, uint uiParen
 	CvString strBuffer;
 	bool bAttackerDead = false;
 	bool bDefenderDead = false;
+	// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+	bool bIsCSOrBarb = false;
 
 	CvUnit* pkAttacker = kCombatInfo.getUnit(BATTLE_UNIT_ATTACKER);
 	CvUnit* pkDefender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
@@ -1662,20 +1751,28 @@ void CvUnitCombat::ResolveAirSweep(const CvCombatInfo& kCombatInfo, uint uiParen
 			pkDefender->changeDamage(iAttackerDamageInflicted, pkAttacker->getOwner());
 			pkAttacker->changeDamage(iDefenderDamageInflicted, pkDefender->getOwner());
 
+			// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+			bIsCSOrBarb = pkAttacker->isBarbarian() || GET_PLAYER(pkAttacker->getOwner()).isMinorCiv();
+
 			// Update experience for both sides.
 			pkDefender->changeExperience(
 			    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
 			    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
 			    true,
 			    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER),
+				!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+
+			// NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
+			bIsCSOrBarb = pkDefender->isBarbarian() || GET_PLAYER(pkDefender->getOwner()).isMinorCiv();
 
 			pkAttacker->changeExperience(
 			    kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER),
 			    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
 			    true,
 			    kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
-			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+			    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER),
+				!bIsCSOrBarb); // NATEMOD - No longer receive great general or admiral points for combat with barbs and cs
 
 			// Anyone eat it?
 			bAttackerDead = (pkAttacker->getDamage() >= GC.getMAX_HIT_POINTS());
@@ -1902,7 +1999,7 @@ void CvUnitCombat::GenerateNuclearCombatInfo(CvUnit& kAttacker, CvPlot& plot, Cv
 	pkCombatInfo->setExperience(BATTLE_UNIT_ATTACKER, 0);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, 0);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() != kAttacker.getOwner());	// Not really correct
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
+	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, false); // NATEMOD - Since experience earned is 0 anyway, no need to bother giving great general points
 
 	pkCombatInfo->setExperience(BATTLE_UNIT_DEFENDER, 0);
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_DEFENDER, 0);

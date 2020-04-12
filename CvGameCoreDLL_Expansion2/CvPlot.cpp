@@ -5893,6 +5893,9 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, PlayerTypes eBuilder
 
 	if(eOldImprovement != eNewValue)
 	{
+		// NATEMOD - Moved unpillaging to before creating new improvement to fix bug where resources would go negative
+		SetImprovementPillaged(false);
+
 		PlayerTypes owningPlayerID = getOwner();
 		if(eOldImprovement != NO_IMPROVEMENT)
 		{
@@ -5976,8 +5979,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, PlayerTypes eBuilder
 
 		setUpgradeProgress(0);
 
-		// make sure this plot is not disabled
-		SetImprovementPillaged(false);
+		// NATEMOD - Moved unpillaging to before creating new improvement to fix bug where resources would go negative
 
 		for(iI = 0; iI < MAX_TEAMS; ++iI)
 		{
@@ -7456,6 +7458,11 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 					if(pkResourceInfo->getResourceUsage() == RESOURCEUSAGE_STRATEGIC)
 					{
 						iYield += GET_PLAYER(ePlayer).GetPlayerTraits()->GetYieldChangeStrategicResources(eYield);
+					}
+					// NATEMOD - Allow extra yields from luxuries as well
+					else if (pkResourceInfo->getResourceUsage() == RESOURCEUSAGE_LUXURY)
+					{
+						iYield += GET_PLAYER(ePlayer).GetPlayerTraits()->GetYieldChangeLuxuryResources(eYield);
 					}
 				}
 			}
@@ -10185,6 +10192,11 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 					// Extra yield from Resources with Trait
 					if(pkResourceInfo->getResourceUsage() == RESOURCEUSAGE_STRATEGIC)
 						iYield += GET_PLAYER(ePlayer).GetPlayerTraits()->GetYieldChangeStrategicResources(eYield);
+					// NATEMOD - Allow extra yields from luxuries as well
+					else if (pkResourceInfo->getResourceUsage() == RESOURCEUSAGE_LUXURY)
+					{
+						iYield += GET_PLAYER(ePlayer).GetPlayerTraits()->GetYieldChangeLuxuryResources(eYield);
+					}
 				}
 			}
 		}

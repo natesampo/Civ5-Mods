@@ -7527,9 +7527,9 @@ void CvGame::doTurn()
 
 	GC.GetEngineUserInterface()->doTurn();
 
-	CvBarbarians::DoCamps();
-
+	// NATEMOD - Changed order of barbarians spawning and moving so that barbarians cannot move immediately after spawning
 	CvBarbarians::DoUnits();
+	CvBarbarians::DoCamps();
 
 	GetGameReligions()->DoTurn();
 	GetGameTrade()->DoTurn();
@@ -8354,8 +8354,13 @@ void CvGame::updateMoves()
 		if (isOption(GAMEOPTION_DYNAMIC_TURNS) || isOption(GAMEOPTION_SIMULTANEOUS_TURNS))
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 			// KWG: This code should go into CheckPlayerTurnDeactivate
-			for(iI = 0; iI < MAX_PLAYERS; iI++)
+			// NATEMOD - Shuffle player turn activations so same-turns on wonders are not slot based any more
+			int aiShuffle[MAX_PLAYERS];
+			shuffleArray(aiShuffle, MAX_PLAYERS, getJonRand());
+
+			for (int iJ = 0; iJ < MAX_PLAYERS; iJ++)
 			{
+				iI = aiShuffle[iJ];
 				CvPlayer& player = GET_PLAYER((PlayerTypes)iI);
 				if(!player.isTurnActive() && player.isHuman() && player.isAlive() && player.isSimultaneousTurns())
 				{

@@ -547,7 +547,11 @@ bool CvDealAI::IsDealWithHumanAcceptable(CvDeal* pDeal, PlayerTypes eOtherPlayer
 	// Peace deal where we're not surrendering, value must equal cached value
 	else if (pDeal->IsPeaceTreatyTrade(eOtherPlayer))
 	{
-		if (iTotalValueToMe >= GetCachedValueOfPeaceWithHuman())
+		// NATEMOD - Add AI always accepts white peace gameoption
+		int iPeaceValueRequired = GetCachedValueOfPeaceWithHuman();
+		if (GC.getGame().isOption("GAMEOPTION_AI_ALWAYS_WHITE_PEACE") && iPeaceValueRequired > 0 && GET_PLAYER(eOtherPlayer).isHuman())
+			iPeaceValueRequired = 0;
+		if (iTotalValueToMe >= iPeaceValueRequired)
 		{
 			return true;
 		}

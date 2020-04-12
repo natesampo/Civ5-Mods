@@ -74,6 +74,7 @@ CvTraitEntry::CvTraitEntry() :
 	m_iRazeSpeedModifier(0),
 	m_iDOFGreatPersonModifier(0),
 	m_iLuxuryHappinessRetention(0),
+	m_iExtraHappinessPerLuxury(0), // NATEMOD - UA for extra happiness from luxuries
 	m_iExtraSpies(0),
 	m_iUnresearchedTechBonusFromKills(0),
 	m_iExtraFoundedCityTerritoryClaimRange(0),
@@ -112,6 +113,7 @@ CvTraitEntry::CvTraitEntry() :
 	m_paiExtraYieldThreshold(NULL),
 	m_paiYieldChange(NULL),
 	m_paiYieldChangeStrategicResources(NULL),
+	m_paiYieldChangeLuxuryResources(NULL), // NATEMOD - UA for extra yield from luxuries
 	m_paiYieldChangeNaturalWonder(NULL),
 	m_paiYieldChangePerTradePartner(NULL),
 	m_paiYieldChangeIncomingTradeRoute(NULL),
@@ -444,6 +446,13 @@ int CvTraitEntry::GetLuxuryHappinessRetention() const
 	return m_iLuxuryHappinessRetention;
 }
 
+// NATEMOD - UA For extra happiness from luxuries
+/// Accessor: extra happiness for the empire per unique luxury
+int CvTraitEntry::GetExtraHappinessPerLuxury() const
+{
+	return m_iExtraHappinessPerLuxury;
+}
+
 /// Accessor: number of extra spies
 int CvTraitEntry::GetExtraSpies() const
 {
@@ -729,6 +738,13 @@ int CvTraitEntry::GetYieldChangeStrategicResources(int i) const
 	return m_paiYieldChangeStrategicResources ? m_paiYieldChangeStrategicResources[i] : -1;
 }
 
+// NATEMOD - UA for extra yield from luxuries
+/// Accessor:: Extra yield from luxury resources
+int CvTraitEntry::GetYieldChangeLuxuryResources(int i) const
+{
+	return m_paiYieldChangeLuxuryResources ? m_paiYieldChangeLuxuryResources[i] : -1;
+}
+
 /// Accessor:: Extra yield from natural wonders
 int CvTraitEntry::GetYieldChangeNaturalWonder(int i) const
 {
@@ -957,6 +973,7 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 	m_iRazeSpeedModifier					= kResults.GetInt("RazeSpeedModifier");
 	m_iDOFGreatPersonModifier				= kResults.GetInt("DOFGreatPersonModifier");
 	m_iLuxuryHappinessRetention				= kResults.GetInt("LuxuryHappinessRetention");
+	m_iExtraHappinessPerLuxury				= kResults.GetInt("ExtraHappinessPerLuxury"); // NATEMOD - UA for extra happiness from luxuries
 	m_iExtraSpies							= kResults.GetInt("ExtraSpies");
 	m_iUnresearchedTechBonusFromKills		= kResults.GetInt("UnresearchedTechBonusFromKills");
 	m_iExtraFoundedCityTerritoryClaimRange  = kResults.GetInt("ExtraFoundedCityTerritoryClaimRange");
@@ -1041,6 +1058,7 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 
 	kUtility.SetYields(m_paiYieldChange, "Trait_YieldChanges", "TraitType", szTraitType);
 	kUtility.SetYields(m_paiYieldChangeStrategicResources, "Trait_YieldChangesStrategicResources", "TraitType", szTraitType);
+	kUtility.SetYields(m_paiYieldChangeLuxuryResources, "Trait_YieldChangesLuxuryResources", "TraitType", szTraitType); // NATEMOD - UA allows for extra yield from luxuries
 	kUtility.SetYields(m_paiYieldChangeNaturalWonder, "Trait_YieldChangesNaturalWonder", "TraitType", szTraitType);
 	kUtility.SetYields(m_paiYieldChangePerTradePartner, "Trait_YieldChangesPerTradePartner", "TraitType", szTraitType);
 	kUtility.SetYields(m_paiYieldChangeIncomingTradeRoute, "Trait_YieldChangesIncomingTradeRoute", "TraitType", szTraitType);
@@ -1421,6 +1439,7 @@ void CvPlayerTraits::InitPlayerTraits()
 			m_iRazeSpeedModifier += trait->GetRazeSpeedModifier();
 			m_iDOFGreatPersonModifier += trait->GetDOFGreatPersonModifier();
 			m_iLuxuryHappinessRetention += trait->GetLuxuryHappinessRetention();
+			m_iExtraHappinessPerLuxury += trait->GetExtraHappinessPerLuxury(); // NATEMOD - UA extra happiness from luxuries
 			m_iExtraSpies += trait->GetExtraSpies();
 			m_iUnresearchedTechBonusFromKills += trait->GetUnresearchedTechBonusFromKills();
 			m_iExtraFoundedCityTerritoryClaimRange += trait->GetExtraFoundedCityTerritoryClaimRange();
@@ -1528,6 +1547,7 @@ void CvPlayerTraits::InitPlayerTraits()
 				}
 				m_iFreeCityYield[iYield] = trait->GetYieldChange(iYield);
 				m_iYieldChangeStrategicResources[iYield] = trait->GetYieldChangeStrategicResources(iYield);
+				m_iYieldChangeLuxuryResources[iYield] = trait->GetYieldChangeLuxuryResources(iYield); // NATEMOD - UA extra yield from luxuries
 				m_iYieldChangeNaturalWonder[iYield] = trait->GetYieldChangeNaturalWonder(iYield);
 				m_iYieldChangePerTradePartner[iYield] = trait->GetYieldChangePerTradePartner(iYield);
 				m_iYieldChangeIncomingTradeRoute[iYield] = trait->GetYieldChangeIncomingTradeRoute(iYield);
@@ -1680,6 +1700,7 @@ void CvPlayerTraits::Reset()
 	m_iRazeSpeedModifier = 0;
 	m_iDOFGreatPersonModifier = 0;
 	m_iLuxuryHappinessRetention = 0;
+	m_iExtraHappinessPerLuxury = 0; // NATEMOD - UA extra happiness for luxuries
 	m_iExtraSpies = 0;
 	m_iUnresearchedTechBonusFromKills = 0;
 	m_iExtraFoundedCityTerritoryClaimRange = 0;
@@ -1739,6 +1760,7 @@ void CvPlayerTraits::Reset()
 		m_iExtraYieldThreshold[iYield] = 0;
 		m_iFreeCityYield[iYield] = 0;
 		m_iYieldChangeStrategicResources[iYield] = 0;
+		m_iYieldChangeLuxuryResources[iYield] = 0; // NATEMOD - UA extra yield from luxuries
 		m_iYieldChangeNaturalWonder[iYield] = 0;
 		m_iYieldChangePerTradePartner[iYield] = 0;
 		m_iYieldChangeIncomingTradeRoute[iYield] = 0;
@@ -2174,7 +2196,8 @@ FreeResourceXCities CvPlayerTraits::GetFreeResourceXCities(ResourceTypes eResour
 /// Is this civ currently able to cross mountains with combat units?
 bool CvPlayerTraits::IsAbleToCrossMountains() const
 {
-	return (m_bCrossesMountainsAfterGreatGeneral && m_pPlayer->getGreatGeneralsCreated() > 0);
+	// NATEMOD - Carthage can now cross mountains without generating a great general
+	return m_bCrossesMountainsAfterGreatGeneral;
 }
 
 bool CvPlayerTraits::NoTrain(UnitClassTypes eUnitClassType)
@@ -2633,6 +2656,8 @@ void CvPlayerTraits::Read(FDataStream& kStream)
 
 	kStream >> m_iLuxuryHappinessRetention;
 
+	kStream >> m_iExtraHappinessPerLuxury; // NATEMOD - UA for extra happiness from luxuries
+
 	kStream >> m_iExtraSpies;
 
 	kStream >> m_iUnresearchedTechBonusFromKills;
@@ -2822,6 +2847,9 @@ void CvPlayerTraits::Read(FDataStream& kStream)
 	ArrayWrapper<int> kYieldChangeResourcesWrapper(NUM_YIELD_TYPES, m_iYieldChangeStrategicResources);
 	kStream >> kYieldChangeResourcesWrapper;
 
+	ArrayWrapper<int> kYieldChangeLuxuryResourcesWrapper(NUM_YIELD_TYPES, m_iYieldChangeLuxuryResources); // NATEMOD - UA extra yield from luxuries
+	kStream >> kYieldChangeLuxuryResourcesWrapper; // NATEMOD - UA extra yield from luxuries
+
 	ArrayWrapper<int> kYieldRateModifierWrapper(NUM_YIELD_TYPES, m_iYieldRateModifier);
 	kStream >> kYieldRateModifierWrapper;
 
@@ -2975,6 +3003,7 @@ void CvPlayerTraits::Write(FDataStream& kStream)
 	kStream << m_iRazeSpeedModifier;
 	kStream << m_iDOFGreatPersonModifier;
 	kStream << m_iLuxuryHappinessRetention;
+	kStream << m_iExtraHappinessPerLuxury; // NATEMOD - UA extra happiness for luxuries
 	kStream << m_iExtraSpies;
 	kStream << m_iUnresearchedTechBonusFromKills;
 	kStream << m_iExtraFoundedCityTerritoryClaimRange;
@@ -3031,6 +3060,7 @@ void CvPlayerTraits::Write(FDataStream& kStream)
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iExtraYieldThreshold);
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iFreeCityYield);
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iYieldChangeStrategicResources);
+	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iYieldChangeLuxuryResources); // NATEMOD - UA extra yield for luxuries
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iYieldRateModifier);
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iYieldChangeNaturalWonder);
 	kStream << ArrayWrapper<int>(NUM_YIELD_TYPES, m_iYieldChangePerTradePartner);
@@ -3161,7 +3191,8 @@ bool CvPlayerTraits::ConvertBarbarianNavalUnit(UnitHandle pUnit)
 		m_pPlayer->GetTreasury()->ChangeGold(iNumGold);
 
 		// Convert the barbarian into our unit
-		pGiftUnit = m_pPlayer->initUnit(pUnit->getUnitType(), pUnit->getX(), pUnit->getY(), pUnit->AI_getUnitAIType(), NO_DIRECTION, true /*bNoMove*/, false);
+		// NATEMOD - Keep specific properties of gifted units, like great scientist bulb amount
+		pGiftUnit = m_pPlayer->initUnit(pUnit->getUnitType(), pUnit->getX(), pUnit->getY(), pUnit->AI_getUnitAIType(), NO_DIRECTION, true /*bNoMove*/, false, DEFAULT_UNIT_MAP_LAYER, 0, true);
 		CvAssertMsg(pGiftUnit, "GiftUnit is not assigned a valid value");
 		pGiftUnit->convert(pUnit.pointer(), false);
 		pGiftUnit->setupGraphical();

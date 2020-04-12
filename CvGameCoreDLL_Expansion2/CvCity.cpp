@@ -3123,7 +3123,8 @@ void CvCity::DoPickResourceDemanded(bool bCurrentResourceInvalid)
 		CvResourceInfo* pkResource = GC.getResourceInfo(eResource);
 		if (pkResource && pkResource->getResourceUsage() == RESOURCEUSAGE_LUXURY)
 		{
-			if (pkResource->isOnlyMinorCivs())
+			// NATEMOD - Prevents WLTKD and city state quests from required luxuries that require specific civilizations (Indonesia)
+			if (pkResource->isOnlyMinorCivs() || (pkResource->GetRequiredCivilization() != NULL && pkResource->GetRequiredCivilization() != NO_CIVILIZATION))
 			{
 				veInvalidLuxuryResources.push_back(eResource);
 			}
@@ -3281,7 +3282,10 @@ void CvCity::DoTestResourceDemanded()
 			// Do we have the right Resource?
 			if(GET_PLAYER(getOwner()).getNumResourceTotal(eResource) > 0)
 			{
-				SetWeLoveTheKingDayCounter(/*20*/ GC.getCITY_RESOURCE_WLTKD_TURNS());
+				// NATEMOD - Scale We Love the Kind Day by game speed
+				int iNumTurns = GC.getCITY_RESOURCE_WLTKD_TURNS();
+				iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
+				SetWeLoveTheKingDayCounter(iNumTurns);
 
 				CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
 				if(pNotifications)
@@ -3312,6 +3316,9 @@ void CvCity::DoSeedResourceDemandedCountdown()
 
 	int iRand = /*10*/ GC.getRESOURCE_DEMAND_COUNTDOWN_RAND();
 	iNumTurns += GC.getGame().getJonRandNum(iRand, "City Resource demanded rand.");
+
+	// NATEMOD - Scale WLTKD countdown by game speed
+	iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
 
 	SetResourceDemandedCountdown(iNumTurns);
 }
@@ -8591,19 +8598,7 @@ void CvCity::DoCreatePuppet()
 		}
 	}
 
-	// Remove any buildings that are not applicable to puppets (but might have been earned through traits/policies)
-	for (int iI = 0; iI < GC.getNumBuildingInfos(); iI++)
-	{
-		BuildingTypes eBuilding = (BuildingTypes) iI;
-		CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
-		if(pkBuildingInfo)
-		{
-			if (pkBuildingInfo->IsNoOccupiedUnhappiness())
-			{
-				GetCityBuildings()->SetNumFreeBuilding(eBuilding, 0);
-			}
-		}
-	}
+	// NATEMOD - Allows players to create puppets without losing free courthouses from Iron Curtain and the like
 
 	GET_PLAYER(getOwner()).DoUpdateHappiness();
 	GET_PLAYER(getOwner()).DoUpdateNextPolicyCost();

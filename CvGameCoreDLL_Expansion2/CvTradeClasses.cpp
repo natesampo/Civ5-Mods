@@ -352,6 +352,8 @@ bool CvGameTrade::CreateTradeRoute(CvCity* pOriginCity, CvCity* pDestCity, Domai
 	}
 	
 	int iTargetTurns = 30; // how many turns do we want the cycle to consume
+	// NATEMOD - Scale trade route duration by game speed
+	iTargetTurns = iTargetTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
 	int iCircuitsToComplete = 1; // how many circuits do we want this trade route to run to reach the target turns
 	if (iTurnsPerCircuit != 0)
 	{
@@ -975,7 +977,8 @@ void CvGameTrade::ClearAllCityStateTradeRoutes (void)
 
 //	--------------------------------------------------------------------------------
 /// Called when war is declared between teams
-void CvGameTrade::CancelTradeBetweenTeams (TeamTypes eTeam1, TeamTypes eTeam2)
+// NATEMOD - War does not destroy trade routes between warring players, rather returns them
+void CvGameTrade::CancelTradeBetweenTeams (TeamTypes eTeam1, TeamTypes eTeam2, bool bReturnUnits)
 {
 	// there shouldn't be trade routes between the same team
 	if (eTeam1 == eTeam2)
@@ -994,6 +997,17 @@ void CvGameTrade::CancelTradeBetweenTeams (TeamTypes eTeam1, TeamTypes eTeam2)
 		TeamTypes eDestTeam = GET_PLAYER(m_aTradeConnections[ui].m_eDestOwner).getTeam();
 		if ((eOriginTeam == eTeam1 && eDestTeam == eTeam2) || (eOriginTeam == eTeam2 && eDestTeam == eTeam1)) 
 		{
+			// NATEMOD - War does not destroy trade routes between warring players, rather returns them
+			if (bReturnUnits)
+			{
+				UnitTypes eUnitType = GET_PLAYER(m_aTradeConnections[ui].m_eOriginOwner).GetTrade()->GetTradeUnit(m_aTradeConnections[ui].m_eDomain);
+				CvAssertMsg(eUnitType != NO_UNIT, "No trade unit found");
+				if (eUnitType != NO_UNIT)
+				{
+					GET_PLAYER(m_aTradeConnections[ui].m_eOriginOwner).initUnit(eUnitType, m_aTradeConnections[ui].m_iOriginX, m_aTradeConnections[ui].m_iOriginY, UNITAI_TRADE_UNIT);
+				}
+			}
+
 			EmptyTradeRoute(ui);
 		}
 	}
@@ -2255,6 +2269,7 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 
 					int iModifier = 100;
 					int iDomainModifier = GetTradeConnectionDomainValueModifierTimes100(kTradeConnection, eYield);
+					// NATEMOD - Moving Domain and era trade route modifiers to base value
 					iValue *= iDomainModifier + 100;
 					iValue /= 100;
 					int iOriginRiverModifier = GetTradeConnectionRiverValueModifierTimes100(kTradeConnection, eYield, bAsOriginPlayer);
@@ -2269,7 +2284,7 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 					iValue += iPolicyBonus;
 					iValue += iTraitBonus;
 
-					iModifier += iDomainModifier;
+					// NATEMOD - Moving Domain and era trade route modifiers to base value
 					iModifier += iOriginRiverModifier;
 
 					iValue *= iModifier;
@@ -2306,6 +2321,9 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 
 						int iModifier = 100;
 						int iDomainModifier = GetTradeConnectionDomainValueModifierTimes100(kTradeConnection, eYield);
+						// NATEMOD - Moving Domain and era trade route modifiers to base value
+						iValue *= iDomainModifier + 100;
+						iValue /= 100;
 						int iDestRiverModifier = GetTradeConnectionRiverValueModifierTimes100(kTradeConnection, eYield, false);
 						int iTraitBonus = GetTradeConnectionOtherTraitValueTimes100(kTradeConnection, eYield, false);
 
@@ -2314,7 +2332,7 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 						iValue += iTheirBuildingBonus;
 						iValue += iTraitBonus;
 
-						iModifier += iDomainModifier;
+						// NATEMOD - Moving Domain and era trade route modifiers to base value
 						iModifier += iDestRiverModifier;
 
 						iValue *= iModifier;
@@ -2356,7 +2374,9 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 
 					int iModifier = 100;
 					int iDomainModifier = GetTradeConnectionDomainValueModifierTimes100(kTradeConnection, eYield);
-					iModifier += iDomainModifier;
+					// NATEMOD - Moving Domain trade route modifier to base value
+					iValue *= iDomainModifier + 100;
+					iValue /= 100;
 					iModifier += GET_PLAYER(kTradeConnection.m_eDestOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_INTERNAL_TRADE_MODIFIER);
 					iValue *= iModifier;
 					iValue /= 100;
@@ -2372,7 +2392,9 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 
 					int iModifier = 100;
 					int iDomainModifier = GetTradeConnectionDomainValueModifierTimes100(kTradeConnection, eYield);
-					iModifier += iDomainModifier;
+					// NATEMOD - Moving Domain trade route modifier to base value
+					iValue *= iDomainModifier + 100;
+					iValue /= 100;
 					iModifier += GET_PLAYER(kTradeConnection.m_eDestOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_INTERNAL_TRADE_MODIFIER);
 					iValue *= iModifier;
 					iValue /= 100;

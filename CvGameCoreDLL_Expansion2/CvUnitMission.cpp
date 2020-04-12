@@ -426,7 +426,8 @@ void CvUnitMission::ContinueMission(UnitHandle hUnit, int iSteps, int iETA)
 
 		if(pkMissionData->iPushTurn == GC.getGame().getGameTurn() || (pkMissionData->iFlags & MOVE_UNITS_THROUGH_ENEMY))
 		{
-			if(pkMissionData->eMissionType == CvTypes::getMISSION_MOVE_TO() && !hUnit->IsDoingPartialMove() && hUnit->canMove() && hUnit->m_unitMoveLocs.size() == 0)
+			// NATEMOD - Prevent civilian units from even attempting to think about combat
+			if(pkMissionData->eMissionType == CvTypes::getMISSION_MOVE_TO() && !hUnit->IsDoingPartialMove() && hUnit->canMove() && hUnit->IsCanDefend() && hUnit->m_unitMoveLocs.size() == 0)
 			{
 				CvPlot* pPlot = GC.getMap().plot(pkMissionData->iData1, pkMissionData->iData2);
 				if(hUnit->IsAutomated() && pPlot->isVisible(hUnit->getTeam()) && hUnit->canMoveInto(*pPlot, CvUnit::MOVEFLAG_ATTACK))

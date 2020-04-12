@@ -70,7 +70,8 @@ bool CvCitySiteEvaluator::CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool 
 
 	if(GC.getGame().isFinalInitialized())
 	{
-		if(GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && pPlayer && pPlayer->isHuman())
+		// NATEMOD - Added gameoption to disallow AI from building settlers
+		if (pPlayer && (pPlayer->isHuman() && GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)) || (!pPlayer->isHuman() && GC.getGame().isOption("GAMEOPTION_AI_NO_BUILDING_SETTLERS")))
 		{
 			if(pPlayer->getNumCities() > 0)
 			{

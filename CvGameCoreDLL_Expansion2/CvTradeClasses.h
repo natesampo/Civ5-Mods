@@ -93,7 +93,7 @@ public:
 	void ClearAllCityTradeRoutes (CvPlot* pPlot); // called when a city is captured or traded
 	void ClearAllCivTradeRoutes (PlayerTypes ePlayer); // called from world congress code
 	void ClearAllCityStateTradeRoutes (void); // called from world congress code
-	void CancelTradeBetweenTeams (TeamTypes eTeam1, TeamTypes eTeam2);
+	void CancelTradeBetweenTeams (TeamTypes eTeam1, TeamTypes eTeam2, bool bReturnUnits = false); // NATEMOD - Added boolean to return trade routes
 
 	void DoAutoWarPlundering(TeamTypes eTeam1, TeamTypes eTeam2); // when war is declared, both sides plunder each others trade routes for cash!
 

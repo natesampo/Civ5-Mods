@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GameData>
+	<Defines>
+		<Row Name="RESISTANCE_PER_POPULATION_TIMES100">
+			<Value>50</Value>
+		</Row>
+	</Defines>
+</GameData>

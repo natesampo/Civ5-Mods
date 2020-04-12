@@ -1702,7 +1702,8 @@ int CvPlayerEspionage::GetCoupChanceOfSuccess(uint uiSpyIndex)
 	}
 
 	int iAllyInfluence = pMinorCivAI->GetEffectiveFriendshipWithMajorTimes100(eAllyPlayer);
-	int iMyInfluence = pMinorCivAI->GetEffectiveFriendshipWithMajorTimes100(m_pPlayer->GetID());
+	// NATEMOD - Use base influence, rather than war blockable (-60) influence when calculating chance of coup
+	int iMyInfluence = pMinorCivAI->GetBaseFriendshipWithMajorTimes100(m_pPlayer->GetID());
 	int iDeltaInfluence = iAllyInfluence - iMyInfluence;
 
 	//float fNobodyBonus = 0.5;
@@ -1821,7 +1822,8 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 	int aiNewInfluenceValueTimes100[MAX_MAJOR_CIVS];
 	for(uint ui = 0; ui < MAX_MAJOR_CIVS; ui++)
 	{
-		aiNewInfluenceValueTimes100[ui] = pMinorCivAI->GetEffectiveFriendshipWithMajorTimes100((PlayerTypes)ui);
+		// NATEMOD - Use base influence, rather than war blockable (-60) influence when calculating chance of coup
+		aiNewInfluenceValueTimes100[ui] = pMinorCivAI->GetBaseFriendshipWithMajorTimes100((PlayerTypes)ui);
 	}
 
 	m_aSpyList[uiSpyIndex].m_bEvaluateReassignment = true; // flag for reassignment

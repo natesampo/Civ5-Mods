@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created by ModBuddy on 2016-09-13 22:44:47 -->
+<GameData>
+	<Units>
+		<Update>
+			<Set Cost="75" />
+			<Where Type="UNIT_CARTHAGINIAN_FOREST_ELEPHANT" />
+		</Update>
+	</Units>
+</GameData>

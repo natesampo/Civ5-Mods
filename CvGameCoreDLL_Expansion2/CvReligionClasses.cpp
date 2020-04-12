@@ -4660,6 +4660,10 @@ CvCity *CvReligionAI::ChooseProphetConversionCity(bool bOnlyBetterThanEnhancingR
 			CvPlayer &kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayerLoop);
 			if(kLoopPlayer.isAlive() && iPlayerLoop != m_pPlayer->GetID())
 			{
+				// NATEMOD - Disable AI from spreading religion to players gameoption
+				if (GC.getGame().isOption("GAMEOPTION_AI_CANNOT_SPREAD_RELIGION_TO_PLAYERS") && kLoopPlayer.isHuman())
+					continue;
+
 				int iCityLoop;
 				for(pLoopCity = GET_PLAYER((PlayerTypes)iPlayerLoop).firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iPlayerLoop).nextCity(&iCityLoop))
 				{
@@ -5681,6 +5685,10 @@ int CvReligionAI::ScoreCityForMissionary(CvCity* pCity, UnitHandle pUnit)
 
 	if (!GET_PLAYER(pCity->getOwner()).isMinorCiv())
 	{
+		// NATEMOD - AI cannot spread religion to players gameoption
+		if (GC.getGame().isOption("GAMEOPTION_AI_CANNOT_SPREAD_RELIGION_TO_PLAYERS") && GET_PLAYER(pCity->getOwner()).isHuman())
+			return 0;
+
 		if (m_pPlayer->GetDiplomacyAI()->IsPlayerAgreeNotToConvert(pCity->getOwner()))
 		{
 			return 0;
@@ -5838,6 +5846,10 @@ bool CvReligionAI::HaveNearbyConversionTarget(ReligionTypes eReligion, bool bCan
 			{
 				if (!kPlayer.isBarbarian())
 				{
+					// NATEMOD - AI cannot spread religion to players gameoption
+					if (GC.getGame().isOption("GAMEOPTION_AI_CANNOT_SPREAD_RELIGION_TO_PLAYERS") && kPlayer.isHuman())
+						continue;
+
 					if (m_pPlayer->GetDiplomacyAI()->IsPlayerAgreeNotToConvert(ePlayer))
 					{
 						continue;

@@ -1057,7 +1057,8 @@ void CvTeam::DoDeclareWar(TeamTypes eTeam, bool bDefensivePact, bool bMinorAllyP
 		// Since we declared war, all of OUR Defensive Pacts are nullified
 		cancelDefensivePacts();
 		GC.getGame().GetGameTrade()->DoAutoWarPlundering(m_eID, eTeam);
-		GC.getGame().GetGameTrade()->CancelTradeBetweenTeams(m_eID, eTeam);
+		// NATEMOD - War does not destroy trade routes between warring players, rather returns them
+		GC.getGame().GetGameTrade()->CancelTradeBetweenTeams(m_eID, eTeam, true);
 
 		if (!bDefensivePact)
 		{

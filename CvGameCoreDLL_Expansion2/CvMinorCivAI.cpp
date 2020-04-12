@@ -4744,6 +4744,12 @@ ResourceTypes CvMinorCivAI::GetNearbyResourceForQuest(PlayerTypes ePlayer)
 				continue;
 			}
 
+			// NATEMOD - Prevents WLTKD and city state quests from required luxuries that require specific civilizations (Indonesia)
+			if(pkResourceInfo->GetRequiredCivilization() != NULL && pkResourceInfo->GetRequiredCivilization() != NO_CIVILIZATION)
+			{
+				continue;
+			}
+
 			// Must be this Resource on the player's area
 			if(pPlayerArea->getNumResources(eResource) == 0)
 			{

@@ -5285,6 +5285,10 @@ bool CvDiplomacyAI::IsWillingToMakePeaceWithHuman(PlayerTypes ePlayer)
 	CvPlayer& kHumanPlayer = GET_PLAYER(ePlayer);
 	if (kHumanPlayer.isHuman())
 	{
+		// NATEMOD - Add AI always accepts white peace gameoption
+		if (GC.getGame().isOption("GAMEOPTION_AI_ALWAYS_WHITE_PEACE"))
+			return true;
+
 		bool bWillMakePeace = GetPlayerNumTurnsAtWar(ePlayer) >= 5;
 
 		if(!GET_TEAM(m_pPlayer->getTeam()).canChangeWarPeace(kHumanPlayer.getTeam()))
